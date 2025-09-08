@@ -4,7 +4,51 @@ export const routes: Routes = [
   {
     path: '',
     loadComponent: () =>
-      import('./modules/layout.component').then((m) => m.LayoutComponent),
+      import('./modules/index/index.component').then((m) => m.IndexComponent),
     title: 'Inicio',
+  },
+  {
+    path: 'register',
+    loadComponent: () =>
+      import('./modules/register/register.component').then(
+        (m) => m.RegisterComponent
+      ),
+    title: 'Registro',
+  },
+  {
+    path: 'product',
+    loadComponent: () =>
+      import('./modules/product/product.component').then(
+        (m) => m.ProductComponent
+      ),
+    title: 'Producto',
+  },
+  {
+    path: 'shop',
+    loadComponent: () =>
+      import('./modules/shop/shop.component').then((m) => m.ShopComponent),
+    title: 'Shop',
+  },
+  {
+    path: 'cart',
+    loadComponent: () =>
+      import('./modules/cart/cart.component').then((m) => m.CartComponent),
+    title: 'Cart',
+  },
+  {
+    path: 'checkout',
+    loadComponent: () =>
+      import('./modules/checkout/checkout.component').then(
+        (m) => m.CheckoutComponent
+      ),
+    title: 'Checkout',
+  },
+  {
+    path: '**',
+    loadComponent: () =>
+      import('./modules/not-found/not-found.component').then(
+        (m) => m.NotFoundComponent
+      ),
+    title: 'Página no encontrada',
   },
 ];
