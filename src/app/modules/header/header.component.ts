@@ -1,11 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { GlobalStore } from '../../global-store';
 
 @Component({
   selector: 'app-header',
   imports: [CommonModule, RouterLink],
   template: `
+    @if(vm$ | async; as vm){
     <!-- Header -->
     <header class="bg-gray-dark sticky top-0 z-50">
       <div class="container mx-auto flex justify-between items-center py-4">
@@ -159,6 +161,7 @@ import { RouterLink } from '@angular/router';
 
         <!-- Right section: Buttons (for desktop) -->
         <div class="hidden lg:flex items-center space-x-4 relative">
+          @if(!vm.user){
           <a
             routerLink="/register"
             class="bg-primary border border-primary hover:bg-transparent text-white hover:text-primary font-semibold px-4 py-2 rounded-full inline-block"
@@ -169,6 +172,13 @@ import { RouterLink } from '@angular/router';
             class="bg-primary border border-primary hover:bg-transparent text-white hover:text-primary font-semibold px-4 py-2 rounded-full inline-block"
             >Login</a
           >
+          }@else {
+          <a
+            (click)="store.logout()"
+            class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
+            >Logout</a
+          >
+          }
           <div class="relative group cart-wrapper">
             <a routerLink="/cart">
               <img
@@ -396,6 +406,7 @@ import { RouterLink } from '@angular/router';
         </li>
       </ul>
       <div class="flex flex-col mt-6 space-y-2 items-center">
+        @if(!vm.user){
         <a
           routerLink="/register"
           class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
@@ -406,6 +417,13 @@ import { RouterLink } from '@angular/router';
           class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
           >Login</a
         >
+        }@else {
+        <a
+          (click)="store.logout()"
+          class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
+          >Logout</a
+        >
+        }
         <a
           routerLink="/register"
           class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
@@ -423,9 +441,13 @@ import { RouterLink } from '@angular/router';
         />
       </div>
     </nav>
+    }
   `,
 })
 export class HeaderComponent {
   protected openMen: boolean = false;
   protected openWomen: boolean = false;
+
+  protected readonly store = inject(GlobalStore);
+  protected readonly vm$ = this.store.vm$;
 }

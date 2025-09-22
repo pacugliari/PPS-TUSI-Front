@@ -20,5 +20,7 @@ import { FooterComponent } from './modules/footer/footer.component';
   template: ` <app-header /><router-outlet /> <app-footer />`,
 })
 export class App {
-  constructor(protected readonly globalStore: GlobalStore) {}
+  constructor(protected readonly globalStore: GlobalStore) {
+    this.globalStore.loadData();
+  }
 }

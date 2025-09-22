@@ -2,19 +2,32 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, catchError, switchMap, tap } from 'rxjs';
+import { User } from './modules/register/register.model';
 
-export interface UserGlobalState {
-  name: string;
+interface RolGlobalState {
+  idRol: number;
+  tipo: 'administrador' | 'operario' | 'usuario';
+  nombre: string;
 }
 
+export interface UserGlobalState {
+  id: number;
+  email: string;
+  role: RolGlobalState;
+  compraOnline: boolean;
+}
 interface GlobalState {
   user: UserGlobalState | null;
   token: string | null;
+  errors: Array<Record<string, string>> | null;
+  isLoading: boolean;
 }
 
 const initialState: GlobalState = {
   user: null,
   token: null,
+  errors: null,
+  isLoading: false,
 };
 
 @Injectable({
@@ -28,7 +41,6 @@ export class GlobalStore extends ComponentStore<GlobalState> {
   /* SELECTORS */
 
   readonly user$ = this.select((state) => state.user);
-
   readonly token$ = this.select((state) => state.token);
 
   /* COMBINED SELECTORS */
@@ -40,34 +52,17 @@ export class GlobalStore extends ComponentStore<GlobalState> {
   /* UPDATERS */
 
   readonly setUser = this.updater<UserGlobalState>((state, user) => {
-    /*const path = user.profileImage ?? this.generateAvatar(user.name);
-    this.auth.setAvatar(path);
-    this.auth.setName(user.name);
-    user.profileImage = path;*/
+    this.setLocalStorageUser(user);
     return { ...state, user };
   });
 
   readonly setToken = this.updater<string>((state, token) => {
-    //this.auth.setToken(token);
-    return { ...state, token, loggingIn: false };
+    this.setLocalStorageToken(token);
+    return { ...state, token };
   });
 
-  readonly setTimeZone = this.updater<string>((state, timeZone) => {
-    //this.auth.setTimeZone(timeZone!);
-    return { ...state, timeZone: timeZone };
-  });
-
-  readonly setConfig = this.updater((state, config) => {
-    return { ...state, config };
-  });
-
-  readonly setPermissions = this.updater<string[]>((state, permissions) => {
-    // this.auth.setPermissions(permissions);
-    return { ...state, permissions };
-  });
-
-  readonly setLoginErrors = this.updater<any>((state, loginErrors) => {
-    return { ...state, loginErrors, loggingIn: false };
+  readonly setErrors = this.updater<any>((state, errors) => {
+    return { ...state, errors };
   });
 
   readonly clearState = this.updater((state) => {
@@ -75,101 +70,62 @@ export class GlobalStore extends ComponentStore<GlobalState> {
       ...state,
       user: null,
       token: '',
-      config: null,
-      permissions: [],
     };
   });
 
   /* EFECTS */
 
-  /*readonly loadData = this.effect($ =>
+  readonly loadData = this.effect(($) =>
     $.pipe(
       tap(() => {
-        const timezone = localStorage.getItem('timezone');
-        if (timezone) this.setTimeZone(timezone);
-        const token = localStorage.getItem('token');
+        const token = this.getLocalStorageToken();
+        const user = this.getLocalStorageUser();
+
         if (token) this.setToken(token);
-
-        const permissions = localStorage.getItem('permissions');
-        if (permissions) this.setPermissions(JSON.parse(permissions));
-
-        const name = localStorage.getItem('name');
-        const profileImage = this.auth.getAvatar();
-        if (name && profileImage) {
-          this.setUser({ name, profileImage });
-        }
-      })
-    )
-  );*/
-
-  /*readonly clearStorage = this.effect($ =>
-    $.pipe(
-      tap(() => {
-        this.clearState();
-        this.auth.removeData();
-      })
-    )
-  );*/
-
-  /*readonly login = this.effect<{ email: string; password: string }>(credentials$ =>
-    credentials$.pipe(
-      tap(() => {
-        this.patchState({ loggingIn: true });
-      }),
-      switchMap(credentials => {
-        return this.auth.login(credentials).pipe(
-          catchError((err: any) => {
-            this.setLoginErrors(err);
-            return EMPTY;
-          })
-        );
-      }),
-      tap((data: any) => {
-        // para guardar la version vieja la cual es utilizada dentro de muchas
-        // areas de la aplicacion, se deberá migrar progresivamente
-        localStorage.setItem('Token', JSON.stringify(data));
-
-        this.setToken(data.data.token);
-        this.setPermissions(data.data.permissions);
-        this.setTimeZone(data.data.timezone);
-        this.setUser({ name: data.data.name, profileImage: data.data.profile_image });
-
-        if (data.data.should_change_password) {
-          const modal = this.modalService.open(ResetPasswordConfirmationComponent);
-          modal.componentInstance.passwordChanged.subscribe((success: boolean) => {
-            if (success) {
-              this.router.navigate([`/profile/account/edit/${data.data.name}`]);
-            } else {
-              this.router.navigate(['/dashboard']);
-            }
-          });
-        } else {
-          this.router.navigate(['/dashboard']);
-        }
-      })
-    )
-  );*/
-
-  /*readonly logout = this.effect($ =>
-    $.pipe(
-      switchMap(() =>
-       this.auth.logout().pipe(
-          tap(() => {
-            this.clearState();
-            this.auth.removeData();
-            this.router.navigate(['/auth/login']);
-          }),
-          catchError((err: any) => EMPTY)
-        )
-      )
-    )
-  );*/
-
-  readonly prueba = this.effect(($) =>
-    $.pipe(
-      tap(() => {
-        alert('PRUEBA GLOBAL STORE');
+        if (user) this.setUser(user);
       })
     )
   );
+
+  readonly clearStorage = this.effect(($) =>
+    $.pipe(
+      tap(() => {
+        this.clearState();
+        this.removeDataLocalStorage();
+      })
+    )
+  );
+
+  readonly logout = this.effect(($) =>
+    $.pipe(
+      tap(() => {
+        this.clearStorage();
+        this.router.navigate(['/register']);
+      })
+    )
+  );
+
+  public setLocalStorageUser(user: UserGlobalState) {
+    localStorage.setItem('user', JSON.stringify(user));
+  }
+
+  public setLocalStorageToken(token: string) {
+    localStorage.setItem('token', token);
+  }
+
+  public getLocalStorageUser(): UserGlobalState | null {
+    const user = localStorage.getItem('user');
+    if (user) return JSON.parse(user);
+    return null;
+  }
+
+  public getLocalStorageToken(): string {
+    const token = localStorage.getItem('token');
+    if (token) return token;
+    return '';
+  }
+
+  public removeDataLocalStorage() {
+    localStorage.clear();
+  }
 }
