@@ -136,7 +136,6 @@ export class Store extends ComponentStore<State> {
         return this.apiService.register(state.registerForm?.getRawValue()).pipe(
           tapResponse({
             next: (res) => {
-              this.get().registerForm?.reset()
               this.alertService.showSuccess(res.message);
             },
             error: (errors: ApiError) => {
@@ -148,7 +147,10 @@ export class Store extends ComponentStore<State> {
                 errors,
               });
             },
-            finalize: () => this.patchState({ isLoading: false }),
+            finalize: () => {
+              this.get().registerForm?.reset();
+              this.patchState({ isLoading: false });
+            },
           })
         );
       })

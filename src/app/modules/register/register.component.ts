@@ -79,13 +79,13 @@ import { Store } from './register.store';
                   formControlName="rememberMe"
                 />
                 <label for="remember-me">Remember Me</label>
-              </div>-->
+              </div>
 
               <div class="mb-3">
                 <a href="#" class="text-primary hover:underline"
                   >Forgot Password?</a
                 >
-              </div>
+              </div>-->
 
               <button
                 type="submit"

@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
-import { EMPTY, catchError, switchMap, tap } from 'rxjs';
-import { User } from './modules/register/register.model';
+import { tap } from 'rxjs';
+import { RolType } from './shared/rol.model';
 
 interface RolGlobalState {
   idRol: number;
-  tipo: 'administrador' | 'operario' | 'usuario';
+  tipo: RolType;
   nombre: string;
 }
 

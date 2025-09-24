@@ -1,3 +1,5 @@
+import { RolType } from "../../shared/rol.model";
+
 export interface LoginResponse{
   token: string;
   user: User;
@@ -24,8 +26,6 @@ export class User {
     );
   }
 }
-
-export type RolType = 'administrador' | 'operario' | 'usuario';
 
 export class Rol {
   constructor(

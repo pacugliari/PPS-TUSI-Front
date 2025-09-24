@@ -2,10 +2,20 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlobalStore } from '../../global-store';
+import { AdministratorActionsComponent } from './administrator-actions/administrator-actions.component';
+import { OperatorActionsComponent } from './operator-actions/operator-actions.component';
+import { UserActionsComponent } from './user-actions/user-actions.component';
+import { RolType } from '../../shared/rol.model';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, RouterLink],
+  imports: [
+    CommonModule,
+    RouterLink,
+    AdministratorActionsComponent,
+    OperatorActionsComponent,
+    UserActionsComponent,
+  ],
   template: `
     @if(vm$ | async; as vm){
     <!-- Header -->
@@ -42,7 +52,16 @@ import { GlobalStore } from '../../global-store';
         </div>
 
         <!-- Center section: Menu -->
-        <nav class="hidden lg:flex md:flex-grow justify-center">
+        @switch (vm.user?.role?.tipo) { @case (rolTypes.ADMINISTRADOR) {
+        <app-administrator-actions />
+        } @case (rolTypes.OPERARIO) {
+        <app-operator-actions />
+        } @case (rolTypes.USUARIO) {
+        <app-user-actions />
+        } @default {
+        <p class="text-white">USUARIO NO LOGUEADO</p>
+        <!--
+                  <nav class="hidden lg:flex md:flex-grow justify-center">
           <ul class="flex justify-center space-x-4 text-white">
             <li>
               <a routerLink="/" class="hover:text-secondary font-semibold"
@@ -50,7 +69,7 @@ import { GlobalStore } from '../../global-store';
               >
             </li>
 
-            <!-- Men -->
+
             <li class="relative group">
               <button
                 type="button"
@@ -91,7 +110,7 @@ import { GlobalStore } from '../../global-store';
               </ul>
             </li>
 
-            <!-- Women -->
+
             <li class="relative group">
               <button
                 type="button"
@@ -158,6 +177,8 @@ import { GlobalStore } from '../../global-store';
             </li>
           </ul>
         </nav>
+          -->
+        } }
 
         <!-- Right section: Buttons (for desktop) -->
         <div class="hidden lg:flex items-center space-x-4 relative">
@@ -178,7 +199,7 @@ import { GlobalStore } from '../../global-store';
             class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
             >Logout</a
           >
-          }
+          } @if(![rolTypes.OPERARIO,rolTypes.ADMINISTRADOR].includes(vm.user?.role?.tipo!)){
           <div class="relative group cart-wrapper">
             <a routerLink="/cart">
               <img
@@ -254,6 +275,7 @@ import { GlobalStore } from '../../global-store';
               placeholder="Search for products..."
             />
           </div>
+          }
         </div>
       </div>
     </header>
@@ -447,6 +469,7 @@ import { GlobalStore } from '../../global-store';
 export class HeaderComponent {
   protected openMen: boolean = false;
   protected openWomen: boolean = false;
+  protected rolTypes = RolType;
 
   protected readonly store = inject(GlobalStore);
   protected readonly vm$ = this.store.vm$;
