@@ -19,7 +19,7 @@ export interface UserGlobalState {
   email: string;
   role: RolGlobalState;
   compraOnline: boolean;
-  perfil: PerfilGlobalState;
+  perfil: PerfilGlobalState | null;
 }
 interface GlobalState {
   user: UserGlobalState | null;
@@ -69,6 +69,11 @@ export class GlobalStore extends ComponentStore<GlobalState> {
   readonly setErrors = this.updater<any>((state, errors) => {
     return { ...state, errors };
   });
+
+  public readonly setIsLoading = this.updater<boolean>((state, isLoading) => ({
+    ...state,
+    isLoading,
+  }));
 
   readonly clearState = this.updater((state) => {
     return {

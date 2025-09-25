@@ -11,7 +11,7 @@ export class User {
     public email: string,
     public role: Rol,
     public compraOnline: boolean,
-    public perfil: Perfil
+    public perfil: Perfil | null
   ) {}
 
   static adapt(item: any) {
@@ -19,8 +19,7 @@ export class User {
       !item.id ||
       !item.email ||
       !item.role ||
-      item.compraOnline === undefined ||
-      !item.perfil
+      item.compraOnline === undefined
     ) {
       throw new Error('Invalid user data');
     }
@@ -30,7 +29,7 @@ export class User {
       item.email,
       Rol.adapt(item.role),
       item.compraOnline,
-      Perfil.adapt(item.perfil)
+      item.perfil && Perfil.adapt(item.perfil)
     );
   }
 }

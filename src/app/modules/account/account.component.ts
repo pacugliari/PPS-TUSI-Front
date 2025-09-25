@@ -105,7 +105,7 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
             <a
               mat-list-item
               class="!py-3 text-red-600 hover:bg-red-50 cursor-pointer"
-              (click)="logout.emit()"
+              (click)="store.logout()"
             >
               <mat-icon matListItemIcon class="mr-3">logout</mat-icon>
               <div matListItemTitle>Cerrar sesión</div>
@@ -284,7 +284,6 @@ export class AccountComponent {
   private fb = inject(FormBuilder);
 
   active = signal<MenuKey>('datos');
-  logout = output<void>();
 
   form: FormGroup = this.fb.group({
     nroCliente: ['54511'],

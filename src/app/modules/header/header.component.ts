@@ -185,7 +185,7 @@ import { MatIconModule } from '@angular/material/icon';
             class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-flex items-center gap-2 min-w-[140px]"
           >
             <mat-icon fontIcon="person"></mat-icon>
-            <span>{{ vm.user.perfil.nombre || 'Usuario' }}</span>
+            <span>{{ vm.user.perfil?.nombre || vm.user.role.nombre  }}</span>
           </button>
           }
           @if(![rolTypes.OPERARIO,rolTypes.ADMINISTRADOR].includes(vm.user?.role?.tipo!)){
@@ -438,7 +438,7 @@ import { MatIconModule } from '@angular/material/icon';
           class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-flex items-center gap-2 min-w-[140px]"
         >
           <mat-icon fontIcon="person"></mat-icon>
-          <span>{{ vm.user.perfil.nombre || 'Usuario' }}</span>
+          <span>{{ vm.user.perfil?.nombre || vm.user.role.nombre  }}</span>
         </button>
         }
         <a
