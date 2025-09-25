@@ -3,7 +3,7 @@ import { Router, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/ro
 import { map } from 'rxjs';
 import { GlobalStore } from '../global-store';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class AuthGuard {
   constructor(private router: Router, private globalStorage: GlobalStore) {}
 
@@ -14,7 +14,7 @@ export class AuthGuard {
           return true;
         }
         // not logged in so redirect to login page with the return url
-        this.router.navigate(['/auth/login'], { queryParams: { returnUrl: state.url } });
+        this.router.navigate(['/register']);
         return false;
       })
     );

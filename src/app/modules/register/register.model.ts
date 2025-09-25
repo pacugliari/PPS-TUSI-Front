@@ -1,6 +1,6 @@
-import { RolType } from "../../shared/rol.model";
+import { RolType } from '../../shared/rol.model';
 
-export interface LoginResponse{
+export interface LoginResponse {
   token: string;
   user: User;
 }
@@ -10,11 +10,18 @@ export class User {
     public id: number,
     public email: string,
     public role: Rol,
-    public compraOnline: boolean
+    public compraOnline: boolean,
+    public perfil: Perfil
   ) {}
 
   static adapt(item: any) {
-    if (!item.id || !item.email || !item.role || item.compraOnline === undefined) {
+    if (
+      !item.id ||
+      !item.email ||
+      !item.role ||
+      item.compraOnline === undefined ||
+      !item.perfil
+    ) {
       throw new Error('Invalid user data');
     }
 
@@ -22,7 +29,8 @@ export class User {
       item.id,
       item.email,
       Rol.adapt(item.role),
-      item.compraOnline
+      item.compraOnline,
+      Perfil.adapt(item.perfil)
     );
   }
 }
@@ -40,5 +48,17 @@ export class Rol {
     }
 
     return new Rol(item.idRol, item.tipo, item.nombre);
+  }
+}
+
+export class Perfil {
+  constructor(public nombre: string) {}
+
+  static adapt(item: any) {
+    if (!item.nombre) {
+      throw new Error('Invalid role data');
+    }
+
+    return new Perfil(item.nombre);
   }
 }

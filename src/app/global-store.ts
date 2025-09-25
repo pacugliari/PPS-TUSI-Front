@@ -10,11 +10,16 @@ interface RolGlobalState {
   nombre: string;
 }
 
+interface PerfilGlobalState {
+  nombre: string;
+}
+
 export interface UserGlobalState {
   id: number;
   email: string;
   role: RolGlobalState;
   compraOnline: boolean;
+  perfil: PerfilGlobalState;
 }
 interface GlobalState {
   user: UserGlobalState | null;

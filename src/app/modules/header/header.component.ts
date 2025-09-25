@@ -2,20 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GlobalStore } from '../../global-store';
-import { AdministratorActionsComponent } from './administrator-actions/administrator-actions.component';
-import { OperatorActionsComponent } from './operator-actions/operator-actions.component';
-import { UserActionsComponent } from './user-actions/user-actions.component';
 import { RolType } from '../../shared/rol.model';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header',
-  imports: [
-    CommonModule,
-    RouterLink,
-    AdministratorActionsComponent,
-    OperatorActionsComponent,
-    UserActionsComponent,
-  ],
+  imports: [CommonModule, RouterLink, MatIconModule],
   template: `
     @if(vm$ | async; as vm){
     <!-- Header -->
@@ -52,23 +44,14 @@ import { RolType } from '../../shared/rol.model';
         </div>
 
         <!-- Center section: Menu -->
-        @switch (vm.user?.role?.tipo) { @case (rolTypes.ADMINISTRADOR) {
-        <app-administrator-actions />
-        } @case (rolTypes.OPERARIO) {
-        <app-operator-actions />
-        } @case (rolTypes.USUARIO) {
-        <app-user-actions />
-        } @default {
-        <p class="text-white">USUARIO NO LOGUEADO</p>
-        <!--
-                  <nav class="hidden lg:flex md:flex-grow justify-center">
+
+        <nav class="hidden lg:flex md:flex-grow justify-center">
           <ul class="flex justify-center space-x-4 text-white">
-            <li>
+            <!--<li>
               <a routerLink="/" class="hover:text-secondary font-semibold"
                 >Home</a
               >
             </li>
-
 
             <li class="relative group">
               <button
@@ -110,7 +93,6 @@ import { RolType } from '../../shared/rol.model';
               </ul>
             </li>
 
-
             <li class="relative group">
               <button
                 type="button"
@@ -149,36 +131,45 @@ import { RolType } from '../../shared/rol.model';
                   >
                 </li>
               </ul>
-            </li>
+            </li>-->
 
             <li>
-              <a routerLink="/shop" class="hover:text-secondary font-semibold"
-                >Shop</a
+              <a
+                routerLink="/shop"
+                class="hover:text-secondary font-bold block py-2"
+                >Notebooks</a
               >
             </li>
             <li>
               <a
-                routerLink="/product"
-                class="hover:text-secondary font-semibold"
-                >Product</a
-              >
-            </li>
-            <li>
-              <a routerLink="/404" class="hover:text-secondary font-semibold"
-                >404 page</a
+                routerLink="/shop"
+                class="hover:text-secondary font-bold block py-2"
+                >PCs</a
               >
             </li>
             <li>
               <a
-                routerLink="/checkout"
-                class="hover:text-secondary font-semibold"
-                >Checkout</a
+                routerLink="/shop"
+                class="hover:text-secondary font-bold block py-2"
+                >Monitores</a
+              >
+            </li>
+            <li>
+              <a
+                routerLink="/shop"
+                class="hover:text-secondary font-bold block py-2"
+                >Periféricos</a
+              >
+            </li>
+            <li>
+              <a
+                routerLink="/shop"
+                class="hover:text-secondary font-bold block py-2"
+                >Gaming</a
               >
             </li>
           </ul>
         </nav>
-          -->
-        } }
 
         <!-- Right section: Buttons (for desktop) -->
         <div class="hidden lg:flex items-center space-x-4 relative">
@@ -186,20 +177,18 @@ import { RolType } from '../../shared/rol.model';
           <a
             routerLink="/register"
             class="bg-primary border border-primary hover:bg-transparent text-white hover:text-primary font-semibold px-4 py-2 rounded-full inline-block"
-            >Register</a
-          >
-          <a
-            routerLink="/register"
-            class="bg-primary border border-primary hover:bg-transparent text-white hover:text-primary font-semibold px-4 py-2 rounded-full inline-block"
-            >Login</a
+            >Ingresar</a
           >
           }@else {
-          <a
-            (click)="store.logout()"
-            class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
-            >Logout</a
+          <button
+            routerLink="/account"
+            class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-flex items-center gap-2 min-w-[140px]"
           >
-          } @if(![rolTypes.OPERARIO,rolTypes.ADMINISTRADOR].includes(vm.user?.role?.tipo!)){
+            <mat-icon fontIcon="person"></mat-icon>
+            <span>{{ vm.user.perfil.nombre || 'Usuario' }}</span>
+          </button>
+          }
+          @if(![rolTypes.OPERARIO,rolTypes.ADMINISTRADOR].includes(vm.user?.role?.tipo!)){
           <div class="relative group cart-wrapper">
             <a routerLink="/cart">
               <img
@@ -286,13 +275,13 @@ import { RolType } from '../../shared/rol.model';
       class="mobile-menu hidden flex flex-col items-center space-y-8 lg:hidden"
     >
       <ul class="w-full">
-        <li>
+        <!--<li>
           <a routerLink="/" class="hover:text-secondary font-bold block py-2"
             >Home</a
           >
-        </li>
+        </li>-->
 
-        <!-- Men Dropdown -->
+        <!-- Men Dropdown
         <li class="relative group" x-data="{ open: false }">
           <a
             (click)="openMen = !openMen; $event.preventDefault()"
@@ -344,9 +333,9 @@ import { RolType } from '../../shared/rol.model';
               >
             </li>
           </ul>
-        </li>
+        </li>-->
 
-        <!-- Women Dropdown -->
+        <!-- Women Dropdown
         <li class="relative group" x-data="{ open: false }">
           <a
             (click)="openWomen = !openWomen; $event.preventDefault()"
@@ -398,32 +387,41 @@ import { RolType } from '../../shared/rol.model';
               >
             </li>
           </ul>
-        </li>
+        </li> -->
 
         <li>
           <a
             routerLink="/shop"
             class="hover:text-secondary font-bold block py-2"
-            >Shop</a
+            >Notebooks</a
           >
         </li>
         <li>
           <a
-            routerLink="/product"
+            routerLink="/shop"
             class="hover:text-secondary font-bold block py-2"
-            >Product</a
-          >
-        </li>
-        <li>
-          <a routerLink="/**" class="hover:text-secondary font-bold block py-2"
-            >404 page</a
+            >PCs</a
           >
         </li>
         <li>
           <a
-            routerLink="/checkout"
+            routerLink="/shop"
             class="hover:text-secondary font-bold block py-2"
-            >Checkout</a
+            >Monitores</a
+          >
+        </li>
+        <li>
+          <a
+            routerLink="/shop"
+            class="hover:text-secondary font-bold block py-2"
+            >Periféricos</a
+          >
+        </li>
+        <li>
+          <a
+            routerLink="/shop"
+            class="hover:text-secondary font-bold block py-2"
+            >Gaming</a
           >
         </li>
       </ul>
@@ -432,19 +430,16 @@ import { RolType } from '../../shared/rol.model';
         <a
           routerLink="/register"
           class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
-          >Register</a
-        >
-        <a
-          routerLink="/register"
-          class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
-          >Login</a
+          >Ingresar</a
         >
         }@else {
-        <a
-          (click)="store.logout()"
-          class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-block flex items-center justify-center min-w-[110px]"
-          >Logout</a
+        <button
+          routerLink="/account"
+          class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-flex items-center gap-2 min-w-[140px]"
         >
+          <mat-icon fontIcon="person"></mat-icon>
+          <span>{{ vm.user.perfil.nombre || 'Usuario' }}</span>
+        </button>
         }
         <a
           routerLink="/register"
