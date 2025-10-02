@@ -6,7 +6,6 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatButtonModule } from '@angular/material/button';
 import { HeaderComponent } from './modules/header/header.component';
 import { FooterComponent } from './modules/footer/footer.component';
-import { SpinnerComponent } from './shared/spinner/spinner.component';
 
 @Component({
   selector: 'app-root',
@@ -17,9 +16,8 @@ import { SpinnerComponent } from './shared/spinner/spinner.component';
     MatIconModule,
     HeaderComponent,
     FooterComponent,
-    SpinnerComponent,
   ],
-  template: ` <app-header /><router-outlet /> <app-footer /> <app-spinner />`,
+  template: ` <app-header /><router-outlet /> <app-footer />`,
 })
 export class App {
   constructor(protected readonly globalStore: GlobalStore) {

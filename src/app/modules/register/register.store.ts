@@ -41,7 +41,7 @@ export class Store extends ComponentStore<State> {
     private readonly apiService: ApiService,
     private readonly fb: FormBuilder,
     private readonly alertService: AlertService,
-    private readonly router: Router
+    private readonly router: Router,
   ) {
     super(InitialState);
   }

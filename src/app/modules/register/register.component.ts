@@ -2,14 +2,17 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Store } from './register.store';
+import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, SpinnerComponent],
   providers: [Store],
   template: `
-    @if(vm$ | async; as vm){
+    @if(vm$ | async; as vm){ @if(vm.isLoading){
+    <app-spinner />
+    }
     <section id="register-login-page" class="bg-white py-16">
       <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row gap-4">
@@ -105,7 +108,10 @@ import { Store } from './register.store';
             <h2 class="text-2xl font-semibold mb-4">Register</h2>
 
             @if(vm.registerForm;as registerForm){
-            <form [formGroup]="registerForm" (ngSubmit)="store.onRegisterSubmit()">
+            <form
+              [formGroup]="registerForm"
+              (ngSubmit)="store.onRegisterSubmit()"
+            >
               <div class="mb-3">
                 <label for="register-email" class="block">Email</label>
                 <input

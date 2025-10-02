@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
 import { Store } from './index.store';
+import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule],
+  imports: [CommonModule, SpinnerComponent],
   providers: [Store],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: `
@@ -13,7 +14,9 @@ import { Store } from './index.store';
    }
   `,
   template: `
-    @if(vm$ | async; as vm){
+    @if(vm$ | async; as vm){ @if(vm.isLoading){
+    <app-spinner />
+    }
     <!-- Slider -->
     <section id="product-slider" class="relative">
       <swiper-container
