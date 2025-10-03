@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
 import { Store } from './index.store';
 import { SpinnerComponent } from '../../shared/spinner/spinner.component';
+import { GlobalStore } from '../../global-store';
 
 @Component({
   selector: 'app-layout',
@@ -237,13 +238,14 @@ import { SpinnerComponent } from '../../shared/spinner/spinner.component';
               }}</a>
               <p class="my-2">{{ product.categoria.nombre }}</p>
               <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary"
-                  >$ {{ product.precio }}</span
-                >
+                <span class="text-lg font-bold text-primary">{{
+                  product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                }}</span>
                 <span class="text-sm line-through ml-2">$899.999</span>
               </div>
               <button
                 class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                (click)="globalStore.addToCart({ producto: product })"
               >
                 Agregar al carrito
               </button>
@@ -265,7 +267,7 @@ import { SpinnerComponent } from '../../shared/spinner/spinner.component';
             <div class="bg-white p-3 rounded-lg shadow-lg">
               <img
                 [src]="product.fotos[0] || 'assets/images/products/default.png'"
-                alt="Producto 1"
+                [alt]="product.nombre"
                 class="w-full object-cover mb-4 rounded-lg"
               />
               <a href="#" class="text-lg font-semibold mb-2">{{
@@ -273,13 +275,14 @@ import { SpinnerComponent } from '../../shared/spinner/spinner.component';
               }}</a>
               <p class="my-2">{{ product.categoria.nombre }}</p>
               <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary"
-                  >$ {{ product.precio }}</span
-                >
+                <span class="text-lg font-bold text-primary">{{
+                  product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                }}</span>
                 <span class="text-sm line-through ml-2">$899.999</span>
               </div>
               <button
                 class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                (click)="globalStore.addToCart({ producto: product })"
               >
                 Agregar al carrito
               </button>
@@ -533,6 +536,7 @@ export class IndexComponent {
   protected openMen = false;
   protected openWomen = false;
   protected readonly store = inject(Store);
+  protected readonly globalStore = inject(GlobalStore);
   protected readonly vm$ = this.store.vm$;
 
   constructor() {

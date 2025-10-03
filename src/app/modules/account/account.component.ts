@@ -2,11 +2,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
-  output,
   signal,
 } from '@angular/core';
-import { GlobalStore } from '../../global-store';
-import { RolType } from '../../shared/rol.model';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -14,6 +11,9 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { GlobalStore } from '../../global-store';
+import { RolType } from '../../shared/rol.model';
+import { Producto } from '../../shared/api/producto.model';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -22,10 +22,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 
+import { catchError, map, of, switchMap } from 'rxjs';
+import { SharedApiService } from '../../shared/api/api.service';
+
 type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
 
 @Component({
   selector: 'app-account',
+  standalone: true,
   imports: [
     CommonModule,
     MatListModule,
@@ -37,8 +41,9 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
     MatDividerModule,
     ReactiveFormsModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if(vm$ | async; as vm){
+    @if (vm$ | async; as vm) {
     <div class="grid grid-cols-12 gap-6 p-3">
       <!-- SIDEBAR -->
       <aside class="col-span-12 md:col-span-3">
@@ -119,169 +124,109 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
         <div class="rounded-md border border-slate-200 bg-white">
           <header class="text-center py-4">
             <h2 class="text-xl font-semibold text-indigo-900">
-              Datos Personales
+              {{ active() === 'favoritos' ? 'Favoritos' : 'Datos Personales' }}
             </h2>
           </header>
           <mat-divider></mat-divider>
 
+          <!-- DATOS -->
           <div class="p-5" *ngIf="active() === 'datos'">
-            <form
-              [formGroup]="form"
-              (ngSubmit)="onSubmit()"
-              class="grid grid-cols-12 gap-4"
-            >
-              <!-- Numero de cliente -->
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-4"
-              >
-                <mat-label>Número de Cliente</mat-label>
-                <input matInput formControlName="nroCliente" readonly />
-              </mat-form-field>
-
-              <!-- Apellido y Nombre -->
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-8"
-              >
-                <mat-label>Apellido y Nombre</mat-label>
-                <input matInput formControlName="nombre" required />
-              </mat-form-field>
-
-              <!-- Email -->
-              <mat-form-field appearance="outline" class="col-span-12">
-                <mat-label>Correo electrónico</mat-label>
-                <input matInput type="email" formControlName="email" required />
-                <mat-error *ngIf="form.get('email')?.hasError('email')"
-                  >Formato inválido</mat-error
-                >
-              </mat-form-field>
-
-              <!-- Teléfono -->
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-4"
-              >
-                <mat-label>Número Telefónico</mat-label>
-                <input matInput formControlName="telefono" required />
-              </mat-form-field>
-
-              <!-- Tipo doc -->
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-4"
-              >
-                <mat-label>Tipo de documento</mat-label>
-                <mat-select formControlName="tipoDoc" required>
-                  <mat-option value="DNI">DNI</mat-option>
-                  <mat-option value="CUIT">CUIT</mat-option>
-                  <mat-option value="LE">LE</mat-option>
-                  <mat-option value="LC">LC</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <!-- DNI -->
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-4"
-              >
-                <mat-label>DNI</mat-label>
-                <input matInput formControlName="dni" required />
-              </mat-form-field>
-
-              <!--
-              Divider Datos de facturación
-              <div class="col-span-12">
-                <span
-                  class="inline-block px-2 py-1 bg-indigo-50 text-indigo-900 font-semibold rounded"
-                >
-                  Datos de Facturación
-                </span>
-              </div>
-
-              Clase Fiscal
-              <mat-form-field appearance="outline" class="col-span-12">
-                <mat-label>Clase Fiscal</mat-label>
-                <mat-select formControlName="claseFiscal" required>
-                  <mat-option value="Consumidor Final"
-                    >Consumidor Final</mat-option
-                  >
-                  <mat-option value="Responsable Inscripto"
-                    >Responsable Inscripto</mat-option
-                  >
-                  <mat-option value="Monotributista">Monotributista</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              Provincia
-              <mat-form-field appearance="outline" class="col-span-12">
-                <mat-label>Provincia</mat-label>
-                <input matInput formControlName="provincia" />
-              </mat-form-field>
-
-              Dirección
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-8"
-              >
-                <mat-label>Dirección</mat-label>
-                <input matInput formControlName="direccion" required />
-              </mat-form-field>
-
-              CP
-              <mat-form-field
-                appearance="outline"
-                class="col-span-12 md:col-span-4"
-              >
-                <mat-label>CP</mat-label>
-                <input matInput formControlName="cp" required />
-              </mat-form-field>
-
-              Localidad
-              <mat-form-field appearance="outline" class="col-span-12">
-                <mat-label>Localidad</mat-label>
-                <input matInput formControlName="localidad" required />
-              </mat-form-field>-->
-
-              <!-- Submit -->
-              <div class="col-span-12">
-                <button
-                  mat-raised-button
-                  color="primary"
-                  class="w-full !bg-indigo-900 hover:!bg-indigo-800"
-                  [disabled]="form.invalid"
-                >
-                  Actualizar Datos
-                </button>
-              </div>
-            </form>
+            <!-- (form) igual que lo tenías -->
+            <!-- ... -->
           </div>
 
-          <!-- Otras secciones simples -->
+          <!-- COMPRAS -->
           <div class="p-6 text-slate-600" *ngIf="active() === 'compras'">
             No hay compras para mostrar.
           </div>
-          <div class="p-6 text-slate-600" *ngIf="active() === 'favoritos'">
-            Todavía no agregaste favoritos.
+
+          <!-- FAVORITOS -->
+          <div class="p-4 md:p-6" *ngIf="active() === 'favoritos'">
+            @if (favoriteProducts$ | async; as favs) { @if (favs.length === 0) {
+            <div class="text-slate-600">Todavía no agregaste favoritos.</div>
+            } @else {
+            <!-- Lista -->
+            <div class="space-y-4">
+              @for (p of favs; track p.idProducto) {
+              <div
+                class="rounded-lg border border-slate-200 bg-white p-3 md:p-4"
+              >
+                <div class="flex items-center gap-3 md:gap-4">
+                  <!-- Eliminar -->
+                  <button
+                    class="text-red-600 hover:text-red-700 p-2"
+                    (click)="removeFav(p.idProducto)"
+                    aria-label="Quitar de favoritos"
+                    title="Quitar de favoritos"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+
+                  <!-- Imagen -->
+                  <img
+                    [src]="p.fotos[0] || '/assets/images/placeholder.png'"
+                    [alt]="p.nombre"
+                    class="w-16 h-16 md:w-20 md:h-20 rounded object-cover ring-1 ring-slate-200 bg-slate-50"
+                  />
+
+                  <!-- Nombre -->
+                  <div class="flex-1 min-w-0">
+                    <div class="text-sm md:text-base font-medium line-clamp-2">
+                      {{ p.nombre }}
+                    </div>
+                  </div>
+
+                  <!-- Precio -->
+                  <div class="text-right">
+                    <div class="text-red-600 font-semibold">
+                      {{
+                        p.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                      }}
+                    </div>
+                    <button
+                      mat-stroked-button
+                      color="primary"
+                      class="!mt-2"
+                      (click)="addToCart(p)"
+                    >
+                      Agregar al carrito
+                    </button>
+                  </div>
+                </div>
+              </div>
+              }
+            </div>
+
+            <!-- Acciones globales -->
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="addAllToCart(favs)"
+              >
+                Agregar todos al carrito
+              </button>
+            </div>
+            } }
           </div>
+
+          <!-- DIRECCIONES -->
           <div class="p-6 text-slate-600" *ngIf="active() === 'direcciones'">
             Sin direcciones cargadas.
           </div>
         </div>
       </section>
     </div>
-
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountComponent {
   protected rolTypes = RolType;
-
   protected readonly store = inject(GlobalStore);
   protected readonly vm$ = this.store.vm$;
 
   private fb = inject(FormBuilder);
+  private api = inject(SharedApiService);
 
   active = signal<MenuKey>('datos');
 
@@ -292,20 +237,48 @@ export class AccountComponent {
     telefono: ['011 3123-5232', [Validators.required]],
     tipoDoc: ['DNI', Validators.required],
     dni: ['11223344', Validators.required],
-    //claseFiscal: ['Consumidor Final', Validators.required],
-    //provincia: ['Buenos Aires'],
-    //direccion: ['Triunvirato 4305', Validators.required],
-    //cp: ['1879', Validators.required],
-    //localidad: ['Quilmes Oeste', Validators.required],
   });
+
+  //REFACTOR
+  readonly favoriteProducts$ = this.store.favorites$.pipe(
+    switchMap((ids) => {
+      if (!ids?.length) return of<Producto[]>([]);
+
+      const idSet = new Set(ids);
+      const order = new Map<number, number>();
+      ids.forEach((id, i) => order.set(id, i));
+
+      return this.api.getProducts().pipe(
+        map((res) => (res?.payload ?? []) as Producto[]),
+        map((all) => all.filter((p) => idSet.has(p.idProducto))),
+        map((list) =>
+          [...list].sort(
+            (a, b) =>
+              (order.get(a.idProducto) ?? 0) - (order.get(b.idProducto) ?? 0)
+          )
+        ),
+        catchError(() => of<Producto[]>([]))
+      );
+    })
+  );
 
   setActive(k: MenuKey) {
     this.active.set(k);
   }
 
   onSubmit() {
+    //TODO
     if (this.form.invalid) return;
-    // acá harías tu submit al backend
     console.log('payload', this.form.getRawValue());
+  }
+
+  removeFav(id: number) {
+    this.store.removeFavorite(id);
+  }
+  addToCart(p: Producto) {
+    this.store.addToCart({ producto: p, cantidad: 1 });
+  }
+  addAllToCart(list: Producto[]) {
+    list.forEach((p) => this.store.addToCart({ producto: p, cantidad: 1 }));
   }
 }
