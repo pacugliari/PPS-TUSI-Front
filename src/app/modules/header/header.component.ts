@@ -4,10 +4,11 @@ import { RouterLink } from '@angular/router';
 import { GlobalStore } from '../../global-store';
 import { RolType } from '../../shared/rol.model';
 import { MatIconModule } from '@angular/material/icon';
+import { CartDropdownComponent } from './cart-dropdown/cart-dropdown.component';
 
 @Component({
   selector: 'app-header',
-  imports: [CommonModule, RouterLink, MatIconModule],
+  imports: [CommonModule, RouterLink, MatIconModule, CartDropdownComponent],
   template: `
     @if(vm$ | async; as vm){
     <!-- Header -->
@@ -185,63 +186,49 @@ import { MatIconModule } from '@angular/material/icon';
             class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-flex items-center gap-2 min-w-[140px]"
           >
             <mat-icon fontIcon="person"></mat-icon>
-            <span>{{ vm.user.perfil?.nombre || vm.user.role.nombre  }}</span>
+            <span>{{ vm.user.perfil?.nombre || vm.user.role.nombre }}</span>
           </button>
           }
           @if(![rolTypes.OPERARIO,rolTypes.ADMINISTRADOR].includes(vm.user?.role?.tipo!)){
-          <div class="relative group cart-wrapper">
-            <a routerLink="/cart">
+          <div class="relative inline-block group cart-wrapper">
+            <a routerLink="/cart" class="relative inline-flex">
               <img
                 src="assets/images/cart-shopping.svg"
-                alt="Cart"
-                class="h-6 w-6 group-hover:scale-120"
+                alt="Carrito"
+                class="h-6 w-6 transition-transform group-hover:scale-110"
               />
-            </a>
-            <!-- Cart dropdown -->
-            <div
-              class="absolute right-0 mt-1 w-80 bg-white shadow-lg p-4 rounded hidden group-hover:block"
-            >
-              <div class="space-y-4">
-                <!-- product item -->
-                <div
-                  class="flex items-center justify-between pb-4 border-b border-gray-line"
-                >
-                  <div class="flex items-center">
-                    <img
-                      src="/assets/images/single-product/1.jpg"
-                      alt="Product"
-                      class="h-12 w-12 object-cover rounded mr-2"
-                    />
-                    <div>
-                      <p class="font-semibold">Summer black dress</p>
-                      <p class="text-sm">Quantity: 1</p>
-                    </div>
-                  </div>
-                  <p class="font-semibold">$25.00</p>
-                </div>
-                <!-- product item -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <img
-                      src="/assets/images/single-product/2.jpg"
-                      alt="Product"
-                      class="h-12 w-12 object-cover rounded mr-2"
-                    />
-                    <div>
-                      <p class="font-semibold">Black suit</p>
-                      <p class="text-sm">Quantity: 1</p>
-                    </div>
-                  </div>
-                  <p class="font-semibold">$125.00</p>
-                </div>
-              </div>
-              <a
-                routerLink="/cart"
-                class="block text-center mt-4 border border-primary bg-primary hover:bg-transparent text-white hover:text-primary py-2 rounded-full font-semibold"
-                >Go to Cart</a
+
+              @if (store.cartCount$ | async; as count) { @if (count > 0) {
+              <span
+                class="pointer-events-none absolute -top-2 -right-2 min-w-[20px] h-5 px-1
+               rounded-full bg-primary text-white text-[11px] leading-5
+               text-center font-semibold shadow ring-2 ring-white
+               animate-[pop_120ms_ease-out]"
+                [attr.aria-label]="'Productos en carrito: ' + count"
               >
-            </div>
+                {{ count }}
+              </span>
+              } }
+            </a>
+
+            <span
+              class="absolute right-0 top-full w-8 h-2 bg-transparent"
+              aria-hidden="true"
+            ></span>
+
+            <app-cart-dropdown
+              class="absolute right-0 top-[calc(100%+0.25rem)] z-50 min-w-[280px]
+           text-black rounded shadow-lg p-2
+           opacity-0 pointer-events-none translate-y-1 -translate-x-1
+           transition ease-out duration-150
+           group-hover:opacity-100 group-hover:pointer-events-auto
+           group-hover:translate-y-0 group-hover:translate-x-0
+           group-focus-within:opacity-100 group-focus-within:pointer-events-auto
+           group-focus-within:translate-y-0 group-focus-within:translate-x-0"
+              [productos]="vm.cart || []"
+            />
           </div>
+
           <a
             id="search-icon"
             href="javascript:void(0);"
@@ -438,7 +425,7 @@ import { MatIconModule } from '@angular/material/icon';
           class="bg-primary hover:bg-transparent text-white hover:text-primary border border-primary font-semibold px-4 py-2 rounded-full inline-flex items-center gap-2 min-w-[140px]"
         >
           <mat-icon fontIcon="person"></mat-icon>
-          <span>{{ vm.user.perfil?.nombre || vm.user.role.nombre  }}</span>
+          <span>{{ vm.user.perfil?.nombre || vm.user.role.nombre }}</span>
         </button>
         }
         <a

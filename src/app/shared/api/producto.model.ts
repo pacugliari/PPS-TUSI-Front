@@ -2,6 +2,7 @@ export class Producto {
   constructor(
     public idProducto: number,
     public nombre: string,
+    public descripcion: string,
     public precio: number,
     public fotos: string[],
     public categoria: Categoria
@@ -11,6 +12,7 @@ export class Producto {
     if (
       !item.idProducto ||
       !item.nombre ||
+      !item.descripcion ||
       !item.precio ||
       item.fotos ||
       !item.categoria
@@ -21,6 +23,7 @@ export class Producto {
     return new Producto(
       item.idProducto,
       item.nombre,
+      item.descripcion,
       item.precio,
       item.fotos,
       Categoria.adapt(item.categoria)
