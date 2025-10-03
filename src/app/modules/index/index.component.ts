@@ -1,16 +1,23 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import { Store } from './index.store';
+import { SpinnerComponent } from '../../shared/spinner/spinner.component';
+import { GlobalStore } from '../../global-store';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule],
+  imports: [CommonModule, SpinnerComponent],
+  providers: [Store],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: `
    .brands-swiper-slider .swiper-button-prev, .brands-swiper-slider .swiper-button-next {
     color: #ff0042 !important;
-}
+   }
   `,
   template: `
+    @if(vm$ | async; as vm){ @if(vm.isLoading){
+    <app-spinner />
+    }
     <!-- Slider -->
     <section id="product-slider" class="relative">
       <swiper-container
@@ -27,8 +34,8 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
         <swiper-slide>
           <div class="relative w-full h-full">
             <img
-              src="assets/images/main-slider/5.jpg"
-              alt="Product 1"
+              src="assets/images/main-slider/2.png"
+              alt="Slide 1"
               class="w-full h-full object-cover"
               loading="eager"
             />
@@ -39,17 +46,18 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
                 <h2
                   class="text-3xl md:text-7xl font-bold text-white mb-3 md:mb-4"
                 >
-                  Women
+                  Notebooks para todo
                 </h2>
                 <p class="mb-4 text-white md:text-2xl">
-                  Experience the best in sportswear with <br />our latest
-                  collection.
+                  Rendimiento, batería y portabilidad. Elegí tu próxima <br />
+                  notebook para estudio, trabajo o gaming.
                 </p>
                 <a
-                  href="/"
+                  href="/shop"
                   class="bg-primary hover:bg-transparent text-white hover:text-white border border-transparent hover:border-white font-semibold px-4 py-2 rounded-full inline-block"
-                  >Shop now</a
                 >
+                  Ver notebooks
+                </a>
               </div>
             </div>
           </div>
@@ -59,8 +67,8 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
         <swiper-slide>
           <div class="relative w-full h-full">
             <img
-              src="assets/images/main-slider/2.png"
-              alt="Product 2"
+              src="assets/images/main-slider/5.png"
+              alt="Slide 2"
               class="w-full h-full object-cover"
               loading="lazy"
             />
@@ -71,17 +79,18 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
                 <h2
                   class="text-3xl md:text-7xl font-bold text-white mb-3 md:mb-4"
                 >
-                  Men
+                  PCs armadas y a medida
                 </h2>
                 <p class="mb-4 text-white md:text-2xl">
-                  Discover the latest trends in Mens <br />sportswear and casual
-                  fashion.
+                  Equipos listos para usar o configurados por vos. <br />
+                  Potencia para trabajar, crear y jugar.
                 </p>
                 <a
-                  href="/"
+                  href="/shop"
                   class="bg-white hover:bg-transparent text-black hover:text-white font-semibold px-4 py-2 rounded-full inline-block border border-transparent hover:border-white"
-                  >Shop now</a
                 >
+                  Ver PCs
+                </a>
               </div>
             </div>
           </div>
@@ -91,8 +100,8 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
         <swiper-slide>
           <div class="relative w-full h-full">
             <img
-              src="assets/images/main-slider/4.jpg"
-              alt="Product 3"
+              src="assets/images/main-slider/4.png"
+              alt="Slide 3"
               class="w-full h-full object-cover"
               loading="lazy"
             />
@@ -103,17 +112,18 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
                 <h2
                   class="text-3xl md:text-7xl font-bold text-white mb-3 md:mb-4"
                 >
-                  Accessories
+                  Gaming sin límites
                 </h2>
                 <p class="mb-4 text-white md:text-2xl">
-                  Elevate your style with our latest <br />sportswear
-                  collection.
+                  Monitores, teclados, auriculares y más. <br />
+                  Todo para subir de nivel.
                 </p>
                 <a
-                  href="/"
+                  href="/shop"
                   class="bg-primary hover:bg-transparent text-white hover:text-white border border-transparent hover:border-white font-semibold px-4 py-2 rounded-full inline-block"
-                  >Shop now</a
                 >
+                  Ver Gaming
+                </a>
               </div>
             </div>
           </div>
@@ -127,7 +137,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
       </swiper-container>
     </section>
 
-    <!-- Product banner section -->
+    <!-- Banners de categorías -->
     <section id="product-banners">
       <div class="container mx-auto py-10">
         <div class="flex flex-wrap -mx-4">
@@ -137,66 +147,71 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
               class="category-banner relative overflow-hidden rounded-lg shadow-lg group"
             >
               <img
-                src="/assets/images/cat-image1.jpg"
-                alt="Category 1"
+                src="/assets/images/cat-image1.png"
+                alt="Categoría Notebooks"
                 class="w-full h-auto"
               />
               <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
               <div
                 class="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4"
               >
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Men</h2>
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">Notebooks</h2>
                 <a
-                  href="/"
+                  href="/shop"
                   class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block"
-                  >Shop now</a
                 >
+                  Ver modelos
+                </a>
               </div>
             </div>
           </div>
+
           <!-- Category 2 -->
           <div class="w-full sm:w-1/3 px-4 mb-8">
             <div
               class="category-banner relative overflow-hidden rounded-lg shadow-lg group"
             >
               <img
-                src="/assets/images/cat-image4.jpg"
-                alt="Category 2"
+                src="/assets/images/cat-image4.png"
+                alt="Categoría Monitores"
                 class="w-full h-auto"
               />
               <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
               <div
                 class="category-text absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4 transition duration-300"
               >
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Women</h2>
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">Monitores</h2>
                 <a
-                  href="/"
+                  href="/shop"
                   class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block"
-                  >Shop now</a
                 >
+                  Ver monitores
+                </a>
               </div>
             </div>
           </div>
+
           <!-- Category 3 -->
           <div class="w-full sm:w-1/3 px-4 mb-8">
             <div
               class="category-banner relative overflow-hidden rounded-lg shadow-lg group"
             >
               <img
-                src="/assets/images/cat-image5.jpg"
-                alt="Category 3"
+                src="/assets/images/cat-image5.png"
+                alt="Categoría Periféricos"
                 class="w-full h-auto"
               />
               <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
               <div
                 class="category-text absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4 transition duration-300"
               >
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Accessories</h2>
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">Periféricos</h2>
                 <a
-                  href="/"
+                  href="/shop"
                   class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block"
-                  >Shop now</a
                 >
+                  Ver periféricos
+                </a>
               </div>
             </div>
           </div>
@@ -204,208 +219,88 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
       </div>
     </section>
 
-    <!-- Popular product section -->
+    <!-- Productos populares -->
     <section id="popular-products">
       <div class="container mx-auto px-4">
-        <h2 class="text-2xl font-bold mb-8">Popular products</h2>
+        <h2 class="text-2xl font-bold mb-8">Productos populares</h2>
         <div class="flex flex-wrap -mx-4">
+          @for (product of vm.popularProducts; track $index) {
           <!-- Product 1 -->
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
               <img
-                src="assets/images/products/1.jpg"
-                alt="Product 1"
+                [src]="product.fotos[0] || 'assets/images/products/default.png'"
+                alt="Producto 1"
                 class="w-full object-cover mb-4 rounded-lg"
               />
-              <a href="#" class="text-lg font-semibold mb-2"
-                >Summer black dress</a
-              >
-              <p class="my-2">Women</p>
+              <a href="#" class="text-lg font-semibold mb-2">{{
+                product.nombre
+              }}</a>
+              <p class="my-2">{{ product.categoria.nombre }}</p>
               <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary">$19.99</span>
-                <span class="text-sm line-through ml-2">$24.99</span>
+                <span class="text-lg font-bold text-primary">{{
+                  product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                }}</span>
+                <span class="text-sm line-through ml-2">$899.999</span>
               </div>
               <button
                 class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                (click)="globalStore.addToCart({ producto: product })"
               >
-                Add to Cart
+                Agregar al carrito
               </button>
             </div>
           </div>
-          <!-- Product 2 -->
-          <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-            <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                src="assets/images/products/2.jpg"
-                alt="Product 2"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2">Black suit</a>
-              <p class=" my-2">Women</p>
-              <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-gray-900">$29.99</span>
-              </div>
-              <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-          <!-- Product 3 -->
-          <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-            <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                src="assets/images/products/3.jpg"
-                alt="Product 3"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2"
-                >Black long dress</a
-              >
-              <p class=" my-2">Women, Accessories</p>
-              <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-gray-900">$15.99</span>
-                <span class="text-sm line-through  ml-2">$19.99</span>
-              </div>
-              <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-          <!-- Product 4 -->
-          <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-            <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                src="assets/images/products/4.jpg"
-                alt="Product 4"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold">Black leather jacket</a>
-              <p class="my-2">Women</p>
-              <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary">$39.99</span>
-                <span class="text-sm line-through ml-2">$49.99</span>
-              </div>
-              <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
+          }
         </div>
       </div>
     </section>
 
-    <!-- Latest product section -->
+    <!-- Últimos ingresos -->
     <section id="latest-products" class="py-10">
       <div class="container mx-auto px-4">
-        <h2 class="text-2xl font-bold mb-8">Latest products</h2>
+        <h2 class="text-2xl font-bold mb-8">Últimos ingresos</h2>
         <div class="flex flex-wrap -mx-4">
+          @for (product of vm.latestProducts; track $index) {
           <!-- Product 1 -->
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
               <img
-                src="assets/images/products/5.jpg"
-                alt="Product 1"
+                [src]="product.fotos[0] || 'assets/images/products/default.png'"
+                [alt]="product.nombre"
                 class="w-full object-cover mb-4 rounded-lg"
               />
-              <a href="#" class="text-lg font-semibold mb-2"
-                >Blue women's suit</a
-              >
-              <p class=" my-2">Women</p>
+              <a href="#" class="text-lg font-semibold mb-2">{{
+                product.nombre
+              }}</a>
+              <p class="my-2">{{ product.categoria.nombre }}</p>
               <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary">$19.99</span>
-                <span class="text-sm line-through ml-2">$24.99</span>
+                <span class="text-lg font-bold text-primary">{{
+                  product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                }}</span>
+                <span class="text-sm line-through ml-2">$899.999</span>
               </div>
               <button
                 class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                (click)="globalStore.addToCart({ producto: product })"
               >
-                Add to Cart
+                Agregar al carrito
               </button>
             </div>
           </div>
-          <!-- Product 2 -->
-          <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-            <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                src="assets/images/products/6.jpg"
-                alt="Product 2"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2"
-                >White shirt with long sleeves</a
-              >
-              <p class=" my-2">Women</p>
-              <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-gray-900">$29.99</span>
-              </div>
-              <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-          <!-- Product 3 -->
-          <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-            <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                src="assets/images/products/7.jpg"
-                alt="Product 3"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2"
-                >Yellow men's suit</a
-              >
-              <p class="my-2">Men</p>
-              <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-gray-900">$15.99</span>
-                <span class="text-sm line-through  ml-2">$19.99</span>
-              </div>
-              <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-          <!-- Product 4 -->
-          <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
-            <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                src="assets/images/products/8.jpg"
-                alt="Product 4"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2">Red dress</a>
-              <p class="my-2">Women</p>
-              <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary">$39.99</span>
-                <span class="text-sm line-through ml-2">$49.99</span>
-              </div>
-              <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-              >
-                Add to Cart
-              </button>
-            </div>
-          </div>
+          }
         </div>
       </div>
     </section>
 
-    <!-- Brand section -->
+    <!-- Marcas -->
     <section id="brands" class="bg-white py-16 px-4 relative">
       <div class="container mx-auto max-w-screen-xl px-4">
         <div class="text-center mb-12 lg:mb-20">
           <h2 class="text-5xl font-bold mb-4">
-            Discover <span class="text-primary">Our Brands</span>
+            Descubrí <span class="text-primary">Nuestras Marcas</span>
           </h2>
-          <p class="my-7">Explore the top brands we feature in our store</p>
+          <p class="my-7">Trabajamos con las marcas líderes del mercado</p>
         </div>
 
         <swiper-container
@@ -418,93 +313,87 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
           loop="true"
           slides-per-group="1"
           breakpoints='{
-        "0":    { "slidesPerView": 2 },
-        "640":  { "slidesPerView": 3 },
-        "1024": { "slidesPerView": 5 }
-      }'
+            "0":    { "slidesPerView": 2 },
+            "640":  { "slidesPerView": 3 },
+            "1024": { "slidesPerView": 5 }
+          }'
           autoplay-delay="2500"
           autoplay-disable-on-interaction="false"
           style="width:100%; display:block"
         >
-          <!-- Cada slide: caja fija, la imagen se ajusta con object-contain -->
+          <!-- Slides de marcas (dejan las imágenes tal cual) -->
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/html.svg"
+                src="/assets/images/brands/gigatech.png"
                 alt="HTML"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/js.svg"
+                src="/assets/images/brands/terabyte.png"
                 alt="JavaScript"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/laravel.svg"
+                src="/assets/images/brands/bytecom.png"
                 alt="Laravel"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/php.svg"
+                src="/assets/images/brands/quantic.png"
                 alt="PHP"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/react.svg"
+                src="/assets/images/brands/quatix.png"
                 alt="React"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/tailwind.svg"
+                src="/assets/images/brands/solytic.png"
                 alt="Tailwind"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/typescript.svg"
+                src="/assets/images/brands/labora.png"
                 alt="TypeScript"
                 class="max-h-full max-w-full object-contain"
               />
@@ -519,187 +408,138 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
       </div>
     </section>
 
-    <!-- Banner section -->
+    <!-- Banner -->
     <section id="banner" class="relative my-16">
       <div
         class="container mx-auto px-4 py-20 rounded-lg relative bg-cover bg-center"
-        style="background-image: url('assets/images/banner1.jpg');"
+        style="background-image: url('assets/images/banner1.png');"
       >
         <div class="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
         <div
           class="relative flex flex-col items-center justify-center h-full text-center text-white py-20"
         >
-          <h2 class="text-4xl font-bold mb-4">Welcome to Our Shop</h2>
+          <h2 class="text-4xl font-bold mb-4">Tecnología al mejor precio</h2>
           <div class="flex space-x-4">
             <a
               href="#"
               class="bg-primary hover:bg-transparent text-white hover:text-primary border border-transparent hover:border-primary font-semibold px-4 py-2 rounded-full inline-block"
-              >Shop Now</a
             >
+              Ofertas
+            </a>
             <a
               href="#"
               class="bg-primary hover:bg-transparent text-white hover:text-primary border border-transparent hover:border-primary font-semibold px-4 py-2 rounded-full inline-block"
-              >New Arrivals</a
             >
+              Nuevos ingresos
+            </a>
             <a
               href="#"
               class="bg-primary hover:bg-transparent text-white hover:text-primary border border-transparent hover:border-primary font-semibold px-4 py-2 rounded-full inline-block"
-              >Sale</a
             >
+              Ver catálogo
+            </a>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Blog section -->
+    <!-- Blog
     <section class="py-16">
       <div class="text-center mb-12 lg:mb-20">
         <h2 class="text-5xl font-bold mb-4">
-          Discover <span class="text-primary">Our</span> Blog
+          Novedades <span class="text-primary">del Blog</span>
         </h2>
         <p class="my-7">
-          Stay updated with the latest trends, tips, and stories in the world of
-          fashion
+          Tips, configuraciones y guías para elegir tu próxima compu y accesorios.
         </p>
       </div>
-      <div
-        class="relative items-center w-full px-5 py-12 mx-auto md:px-12 lg:px-24 max-w-7xl"
-      >
+      <div class="relative items-center w-full px-5 py-12 mx-auto md:px-12 lg:px-24 max-w-7xl">
         <div class="grid w-full grid-cols-1 gap-6 mx-auto lg:grid-cols-3">
           <div class="flex flex-col p-6 bg-white rounded-xl shadow-lg">
-            <img
-              class="object-cover object-center w-full mb-8 rounded-xl"
-              src="/assets/images/fashion-trends.jpg"
-              alt="blog"
-            />
-            <h2
-              class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase"
-            >
-              Fashion Trends
-            </h2>
-            <h1
-              class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl"
-            >
-              Latest Shirt Trends for 2024
+            <img class="object-cover object-center w-full mb-8 rounded-xl" src="/assets/images/fashion-trends.jpg" alt="blog" />
+            <h2 class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">Guías de compra</h2>
+            <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl">
+              ¿Notebook o PC de escritorio?
             </h1>
-            <p
-              class="flex-grow text-base font-medium leading-relaxed text-gray-txt"
-            >
-              Explore the hottest shirt trends of 2024. From bold prints to
-              classic styles, stay ahead of the fashion curve with our expert
-              insights.
+            <p class="flex-grow text-base font-medium leading-relaxed text-gray-txt">
+              Te contamos qué conviene según tu uso: estudio, trabajo creativo o gaming. Pros y contras de cada opción.
             </p>
             <div class="mt-8">
-              <a
-                href="#"
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-                >Read more</a
-              >
+              <a href="#" class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">
+                Leer más
+              </a>
             </div>
           </div>
+
           <div class="flex flex-col p-6 bg-white rounded-xl shadow-lg">
-            <img
-              class="object-cover object-center w-full mb-8 rounded-xl"
-              src="/assets/images/stylisng-tips.jpg"
-              alt="blog"
-            />
-            <h2
-              class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase"
-            >
-              Styling Tips
-            </h2>
-            <h1
-              class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl"
-            >
-              How to Style Your Shirt for Any Occasion
+            <img class="object-cover object-center w-full mb-8 rounded-xl" src="/assets/images/stylisng-tips.jpg" alt="blog" />
+            <h2 class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">Periféricos</h2>
+            <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl">
+              Cómo elegir tu teclado y mouse
             </h1>
-            <p
-              class="flex-grow text-base font-medium leading-relaxed text-gray-txt"
-            >
-              Learn how to style your shirt for different occasions, whether
-              it's a casual day out or a formal event. Get tips from fashion
-              experts.
+            <p class="flex-grow text-base font-medium leading-relaxed text-gray-txt">
+              Mecanismos, tamaños, sensores y ergonomía. Elegí el combo ideal para productividad o gaming.
             </p>
             <div class="mt-8">
-              <a
-                href="#"
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-                >Read more</a
-              >
+              <a href="#" class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">
+                Leer más
+              </a>
             </div>
           </div>
+
           <div class="flex flex-col p-6 bg-white rounded-xl shadow-lg">
-            <img
-              class="object-cover object-center w-full mb-8 rounded-xl"
-              src="/assets/images/customer-stories.jpg"
-              alt="blog"
-            />
-            <h2
-              class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase"
-            >
-              Customer Stories
-            </h2>
-            <h1
-              class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl"
-            >
-              Real Stories from Our Happy Customers
+            <img class="object-cover object-center w-full mb-8 rounded-xl" src="/assets/images/customer-stories.jpg" alt="blog" />
+            <h2 class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">Monitores</h2>
+            <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl">
+              60Hz vs 144Hz: ¿se nota la diferencia?
             </h1>
-            <p
-              class="flex-grow text-base font-medium leading-relaxed text-gray-txt"
-            >
-              Read about the experiences of our customers. Discover how our
-              shirts have made a difference in their lives and their personal
-              style.
+            <p class="flex-grow text-base font-medium leading-relaxed text-gray-txt">
+              Te explicamos cuándo conviene subir la tasa de refresco y qué tener en cuenta al elegir tu monitor.
             </p>
             <div class="mt-8">
-              <a
-                href="#"
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-                >Read more</a
-              >
+              <a href="#" class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">
+                Leer más
+              </a>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </section>-->
 
-    <!-- Subscribe section -->
-    <section
-      id="subscribe"
-      class="py-6 lg:py-24 bg-white border-t border-gray-line"
-    >
+    <!-- Suscripción
+    <section id="subscribe" class="py-6 lg:py-24 bg-white border-t border-gray-line">
       <div class="container mx-auto">
         <div class="flex flex-col items-center rounded-lg p-4 sm:p-0 ">
           <div class="mb-8">
-            <h2
-              class="text-center text-xl font-bold sm:text-2xl lg:text-left lg:text-3xl"
-            >
-              Join our newsletter and
-              <span class="text-primary">get $50 discount</span> for your first
-              order
+            <h2 class="text-center text-xl font-bold sm:text-2xl lg:text-left lg:text-3xl">
+              Sumate al newsletter y <span class="text-primary">obtené $50 de descuento</span> en tu primera compra
             </h2>
           </div>
           <div class="flex flex-col items-center w-96 ">
             <form class="flex w-full gap-2">
               <input
-                placeholder="Enter your email address"
+                placeholder="Ingresá tu e-mail"
                 class="w-full flex-1 rounded-full px-3 py-2 border border-gray-300 text-gray-700 placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary"
               />
-              <button
-                class="bg-primary border border-primary hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full"
-              >
-                Subscribe
+              <button class="bg-primary border border-primary hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full">
+                Suscribirme
               </button>
             </form>
           </div>
         </div>
       </div>
-    </section>
-
-
+    </section>-->
+    }
   `,
 })
 export class IndexComponent {
-  protected openMen: boolean = false;
-  protected openWomen: boolean = false;
+  protected openMen = false;
+  protected openWomen = false;
+  protected readonly store = inject(Store);
+  protected readonly globalStore = inject(GlobalStore);
+  protected readonly vm$ = this.store.vm$;
+
+  constructor() {
+    this.store.loadData();
+  }
 }

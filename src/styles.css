@@ -3,6 +3,28 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+.swal2-confirm {
+  background-color: #3085d6 !important; /* azul default */
+  color: #fff !important;
+}
+
+.swal2-confirm:hover {
+  background-color: #2c7cd1 !important; /* azul hover default */
+}
+
+
+.mat-mdc-form-field .mdc-notched-outline__leading { border-right: 0 !important; }
+.mat-mdc-form-field .mdc-notched-outline__notch   { border-right: 0 !important; }
+.mat-mdc-form-field .mdc-notched-outline__trailing{ border-left:  0 !important; }
+
+/* (opcional) asegura el ancho de trazo del outline */
+:root { --mdc-outlined-text-field-outline-width: 1px; }
