@@ -241,7 +241,13 @@ import { GlobalStore } from '../../global-store';
                 <span class="text-lg font-bold text-primary">{{
                   product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
                 }}</span>
-                <span class="text-sm line-through ml-2">$899.999</span>
+                @if(product.precioAnterior && product.precio <
+                product.precioAnterior){
+                <span class="text-sm line-through ml-2">{{
+                  product.precioAnterior
+                    | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                }}</span>
+                }
               </div>
               <button
                 class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
@@ -278,7 +284,13 @@ import { GlobalStore } from '../../global-store';
                 <span class="text-lg font-bold text-primary">{{
                   product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
                 }}</span>
-                <span class="text-sm line-through ml-2">$899.999</span>
+                @if(product.precioAnterior && product.precio <
+                product.precioAnterior){
+                <span class="text-sm line-through ml-2">{{
+                  product.precioAnterior
+                    | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                }}</span>
+                }
               </div>
               <button
                 class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"

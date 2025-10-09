@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { exhaustMap, tap } from 'rxjs';
+import { exhaustMap, forkJoin, map, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { AlertService } from '../../shared/alert/alert.service';
 import { ApiError } from '../../shared/api-response.model';
-import { Producto } from '../../shared/api/producto.model';
-import { SharedApiService } from '../../shared/api/api.service';
+import { ApiService } from './api.service';
+import { Producto } from './index.model';
 
 export interface State {
   isLoading: boolean;
@@ -24,7 +24,7 @@ const InitialState: State = {
 @Injectable()
 export class Store extends ComponentStore<State> {
   constructor(
-    private readonly apiService: SharedApiService,
+    private readonly apiService: ApiService,
     private readonly alertService: AlertService
   ) {
     super(InitialState);
@@ -34,24 +34,25 @@ export class Store extends ComponentStore<State> {
     $.pipe(
       tap(() => this.patchState({ isLoading: true, errors: null })),
       exhaustMap(() =>
-        this.apiService.getProducts().pipe(
+        forkJoin({
+          popular: this.apiService.getPopularProducts(),
+          latest: this.apiService.getLatestProducts(),
+        }).pipe(
           tapResponse({
-            next: (response) => {
-              const products = response.payload ?? [];
-              const lastFour = products.slice(-4);
+            next: ({ popular, latest }) => {
               this.patchState({
-                popularProducts: lastFour,
-                latestProducts: lastFour,
+                popularProducts: popular,
+                latestProducts: latest,
               });
             },
             error: (errors: ApiError) => {
               console.error(errors);
               this.alertService.showError(
-                errors.flatMap((err) => Object.values(err))
+                (Array.isArray(errors) ? errors : [errors]).flatMap((err) =>
+                  Object.values(err)
+                )
               );
-              this.patchState({
-                errors,
-              });
+              this.patchState({ errors });
             },
             finalize: () => this.patchState({ isLoading: false }),
           })

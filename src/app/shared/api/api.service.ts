@@ -12,6 +12,6 @@ export class SharedApiService {
   constructor(private http: HttpClient) {}
 
   public getProducts(): Observable<ApiResponse<Producto[]>> {
-    return this.http.get<any>(environment.API_URL + 'products');
+    return this.http.get<any>(environment.API_URL + 'productos');
   }
 }
