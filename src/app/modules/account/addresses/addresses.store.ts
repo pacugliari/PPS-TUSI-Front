@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { catchError, exhaustMap, of, tap } from 'rxjs';
+import { exhaustMap, forkJoin, of, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { AddressesApiService } from './api.service';
-import { Direccion, DireccionUpsertDto } from './addresses.model';
+import { Direccion, DireccionUpsertDto, Zona } from './addresses.model';
 import { AlertService } from '../../../shared/alert/alert.service';
 import { ApiError } from '../../../shared/api-response.model';
 
@@ -11,7 +11,8 @@ export interface AddressesState {
   isLoading: boolean;
   saving: boolean;
   direcciones: Direccion[];
-  editingId: number | null | undefined; // undefined=inactivo, null=creando, number=editando
+  zonas: Zona[];
+  editingId: number | null | undefined;
   errors: ApiError | null;
 }
 
@@ -19,6 +20,7 @@ const initialState: AddressesState = {
   isLoading: false,
   saving: false,
   direcciones: [],
+  zonas: [],
   editingId: undefined,
   errors: null,
 };
@@ -38,6 +40,11 @@ export class AddressesStore extends ComponentStore<AddressesState> {
     direcciones,
   }));
 
+  readonly setZonas = this.updater<Zona[]>((state, zonas) => ({
+    ...state,
+    zonas,
+  }));
+
   readonly setEditingId = this.updater<number | null | undefined>(
     (state, editingId) => ({ ...state, editingId })
   );
@@ -48,14 +55,19 @@ export class AddressesStore extends ComponentStore<AddressesState> {
   }));
 
   // --------- EFFECTS ----------
-  readonly loadDirecciones = this.effect<void>(($) =>
+  readonly loadData = this.effect<void>(($) =>
     $.pipe(
       tap(() => this.patchState({ isLoading: true, errors: null })),
       exhaustMap(() =>
-        this.api.getDirecciones().pipe(
+        forkJoin({
+          direcciones: this.api.getDirecciones(),
+          zonas: this.api.getZonas(),
+        }).pipe(
           tapResponse({
-            next: (res) => {
-              this.setDirecciones((res?.payload ?? []).map(Direccion.adapt));
+            next: ({ direcciones, zonas }) => {
+              const list = (direcciones?.payload ?? []).map(Direccion.adapt);
+              this.setDirecciones(list);
+              this.setZonas(zonas?.payload ?? []);
             },
             error: (errors: ApiError) => {
               console.error(errors);
@@ -90,7 +102,7 @@ export class AddressesStore extends ComponentStore<AddressesState> {
           tapResponse({
             next: () => {
               this.setEditingId(undefined);
-              this.loadDirecciones();
+              this.loadData();
             },
             error: (err) => {
               console.error(err);
@@ -108,7 +120,7 @@ export class AddressesStore extends ComponentStore<AddressesState> {
       exhaustMap((id) =>
         this.api.deleteDireccion(id).pipe(
           tapResponse({
-            next: () => this.loadDirecciones(),
+            next: () => this.loadData(),
             error: (err) => {
               console.error(err);
               this.alertService.showError(['Error eliminando dirección']);
@@ -124,7 +136,7 @@ export class AddressesStore extends ComponentStore<AddressesState> {
       exhaustMap((id) =>
         this.api.setDireccionPrincipal(id).pipe(
           tapResponse({
-            next: () => this.loadDirecciones(),
+            next: () => this.loadData(),
             error: (err) => {
               console.error(err);
               this.alertService.showError(['Error marcando como principal']);
@@ -135,11 +147,12 @@ export class AddressesStore extends ComponentStore<AddressesState> {
     )
   );
 
-  // --------- VIEW MODEL SELECTOR ----------
+  // --------- VIEW MODEL ----------
   readonly vm$ = this.select((state) => ({
     isLoading: state.isLoading,
     saving: state.saving,
     direcciones: state.direcciones,
+    zonas: state.zonas,
     editingId: state.editingId,
     errors: state.errors,
     isCreatingOrEditing: state.editingId !== undefined,
