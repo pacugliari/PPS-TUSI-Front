@@ -4,8 +4,8 @@ import { exhaustMap, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { AlertService } from '../../shared/alert/alert.service';
 import { ApiError } from '../../shared/api-response.model';
-import { Producto } from '../../shared/api/producto.model';
-import { SharedApiService } from '../../shared/api/api.service';
+import { Producto } from './shop.model';
+import { ApiService } from './api.service';
 
 export interface State {
   isLoading: boolean;
@@ -26,7 +26,7 @@ const InitialState: State = {
 @Injectable()
 export class Store extends ComponentStore<State> {
   constructor(
-    private readonly apiService: SharedApiService,
+    private readonly apiService: ApiService,
     private readonly alertService: AlertService
   ) {
     super(InitialState);
