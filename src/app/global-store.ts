@@ -3,9 +3,11 @@ import { Router } from '@angular/router';
 import { ComponentStore } from '@ngrx/component-store';
 import { EMPTY, switchMap, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
-import { RolType } from './shared/rol.model';
-import { Producto } from './shared/api/producto.model';
+import { RolType } from './shared/models/rol.model';
+import { Producto } from './shared/models/producto.model';
 import { SharedApiService } from './shared/api/api.service';
+import { Coupon } from './shared/models/coupon';
+import { AlertService } from './shared/alert/alert.service';
 
 interface RolGlobalState {
   idRol: number;
@@ -43,6 +45,8 @@ interface GlobalState {
   isLoading: boolean;
   cart: CartItem[];
   favorites: number[];
+  coupon: Coupon | null;
+  isApplyingCoupon: boolean;
 }
 
 const initialState: GlobalState = {
@@ -52,12 +56,15 @@ const initialState: GlobalState = {
   isLoading: false,
   cart: [],
   favorites: [],
+  coupon: null,
+  isApplyingCoupon: false,
 };
 
 const LS_USER_KEY = 'user';
 const LS_TOKEN_KEY = 'token';
 const LS_CART_NS = 'cart';
 const LS_FAVS_NS = 'favorites';
+const LS_COUPON_NS = 'coupon';
 
 const ROLES_SIN_CART: ReadonlyArray<RolType> = [
   RolType.ADMINISTRADOR,
@@ -72,7 +79,8 @@ const ROLES_SIN_FAVS: ReadonlyArray<RolType> = [
 export class GlobalStore extends ComponentStore<GlobalState> {
   constructor(
     private router: Router,
-    private sharedApiService: SharedApiService
+    private sharedApiService: SharedApiService,
+    private readonly alertService : AlertService
   ) {
     super(initialState);
   }
@@ -98,6 +106,9 @@ export class GlobalStore extends ComponentStore<GlobalState> {
 
   readonly canUseCart$ = this.select(this.user$, (u) => this.cartEnabledFor(u));
   readonly canUseFavs$ = this.select(this.user$, (u) => this.favsEnabledFor(u));
+  readonly coupon$ = this.select((s) => s.coupon);
+  readonly isApplyingCoupon$ = this.select((s) => s.isApplyingCoupon);
+  readonly discountPercent$ = this.select(this.coupon$, (c) => c?.percent ?? 0);
 
   readonly vm$ = this.select(({ user, cart, favorites, isLoading }) => ({
     user,
@@ -107,6 +118,16 @@ export class GlobalStore extends ComponentStore<GlobalState> {
   }));
 
   //UPDATERS
+
+  readonly setCoupon = this.updater<Coupon | null>((s, coupon) => {
+    this.setPerUser(LS_COUPON_NS, s.user, coupon);
+    return { ...s, coupon };
+  });
+
+  readonly setIsApplyingCoupon = this.updater<boolean>((s, isApplying) => ({
+    ...s,
+    isApplyingCoupon: isApplying,
+  }));
 
   readonly setUser = this.updater<UserGlobalState>((state, user) => {
     this.setLocalStorageItem(LS_USER_KEY, user);
@@ -156,34 +177,33 @@ export class GlobalStore extends ComponentStore<GlobalState> {
     return { ...s, user: null, token: '', cart: [], favorites: [] };
   });
 
-  readonly addToCart = this.updater<{ producto: Omit<Producto, 'categoria' | 'precioAnterior'>; cantidad?: number }>(
-    (state, { producto, cantidad = 1 }) => {
-      if (!this.cartEnabledFor(state.user)) return state;
+  readonly addToCart = this.updater<{
+    producto: Omit<Producto, 'categoria' | 'precioAnterior'>;
+    cantidad?: number;
+  }>((state, { producto, cantidad = 1 }) => {
+    if (!this.cartEnabledFor(state.user)) return state;
 
-      const nextCart = [...state.cart];
-      const idx = nextCart.findIndex(
-        (i) => i.idProducto === producto.idProducto
-      );
-      if (idx >= 0)
-        nextCart[idx] = {
-          ...nextCart[idx],
-          cantidad: nextCart[idx].cantidad + cantidad,
-        };
-      else
-        nextCart.push({
-          idProducto: producto.idProducto,
-          nombre: producto.nombre,
-          precio: producto.precio,
-          imagen: producto.fotos?.[0] ?? null,
-          cantidad,
-        });
+    const nextCart = [...state.cart];
+    const idx = nextCart.findIndex((i) => i.idProducto === producto.idProducto);
+    if (idx >= 0)
+      nextCart[idx] = {
+        ...nextCart[idx],
+        cantidad: nextCart[idx].cantidad + cantidad,
+      };
+    else
+      nextCart.push({
+        idProducto: producto.idProducto,
+        nombre: producto.nombre,
+        precio: producto.precio,
+        imagen: producto.fotos?.[0] ?? null,
+        cantidad,
+      });
 
-      const persisted = this.toPersisted(nextCart);
-      this.setPerUser(LS_CART_NS, state.user, persisted);
+    const persisted = this.toPersisted(nextCart);
+    this.setPerUser(LS_CART_NS, state.user, persisted);
 
-      return { ...state, cart: nextCart };
-    }
-  );
+    return { ...state, cart: nextCart };
+  });
 
   readonly updateQuantity = this.updater<{
     idProducto: number;
@@ -317,14 +337,17 @@ export class GlobalStore extends ComponentStore<GlobalState> {
         if (user) {
           this.setUser(user);
           this.hydrateCart(user);
+          const saved = this.getPerUser<Coupon | null>(LS_COUPON_NS, user);
+          this.patchState({ coupon: saved ?? null });
         } else {
           this.patchState({ user: null, favorites: [] });
           this.hydrateCart(null);
+          const guest = this.getPerUser<Coupon | null>(LS_COUPON_NS, null);
+          this.patchState({ coupon: guest ?? null });
         }
       })
     )
   );
-
   readonly logout = this.effect(($) =>
     $.pipe(
       tap(() => {
@@ -336,6 +359,45 @@ export class GlobalStore extends ComponentStore<GlobalState> {
         this.router.navigate(['/register']);
       })
     )
+  );
+
+  readonly applyCoupon = this.effect<string>(($) =>
+    $.pipe(
+      tap(() => this.setIsApplyingCoupon(true)),
+      switchMap((code) =>
+        this.sharedApiService.validateCoupon(code).pipe(
+          tapResponse({
+            next: (coupon) => {
+              if (coupon?.percent && coupon.percent > 0) {
+                this.setCoupon(coupon);
+                this.alertService.showSuccess(
+                  `Cupón aplicado: ${coupon.code ?? code} (-${
+                    coupon.percent
+                  }%).`
+                );
+              } else {
+                this.setCoupon(null);
+                this.alertService.showError([
+                  `El cupón "${code}" no es válido o no tiene descuento.`,
+                ]);
+              }
+            },
+            error: (err) => {
+              console.error(err);
+              this.setCoupon(null);
+              this.alertService.showError([
+                `No se pudo validar el cupón "${code}".`,
+              ]);
+            },
+            finalize: () => this.setIsApplyingCoupon(false),
+          })
+        )
+      )
+    )
+  );
+
+  readonly clearCoupon = this.effect(($) =>
+    $.pipe(tap(() => this.setCoupon(null)))
   );
 
   //UTILS

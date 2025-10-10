@@ -3,7 +3,7 @@ import { ComponentStore } from '@ngrx/component-store';
 import { catchError, map, of, switchMap, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { GlobalStore } from '../../../global-store';
-import { ApiError } from '../../../shared/api-response.model';
+import { ApiError } from '../../../shared/models/api-response.model';
 import { FavoritesApiService } from './api.service';
 import { Favorite } from './favorites.model';
 

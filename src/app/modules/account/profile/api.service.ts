@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, of, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../shared/api-response.model';
+import { ApiResponse } from '../../../shared/models/api-response.model';
 import { Profile, ProfileModel, ProfileUpsertDto } from './profile.model';
 
 @Injectable({ providedIn: 'root' })

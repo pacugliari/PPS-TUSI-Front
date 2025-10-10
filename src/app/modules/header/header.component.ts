@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 
 import { GlobalStore } from '../../global-store';
-import { RolType } from '../../shared/rol.model';
+import { RolType } from '../../shared/models/rol.model';
 import { CartDropdownComponent } from './cart-dropdown/cart-dropdown.component';
 
 @Component({

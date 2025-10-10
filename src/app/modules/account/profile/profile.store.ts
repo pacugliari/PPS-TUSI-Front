@@ -3,7 +3,7 @@ import { ComponentStore } from '@ngrx/component-store';
 import { exhaustMap, switchMap, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { ProfileModel, ProfileUpsertDto } from './profile.model';
-import { ApiError } from '../../../shared/api-response.model';
+import { ApiError } from '../../../shared/models/api-response.model';
 import { ProfileApiService } from './api.service';
 import { FormGroup } from '@angular/forms';
 

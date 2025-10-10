@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
 import { exhaustMap, take, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
-import { ApiError } from '../../../shared/api-response.model';
+import { ApiError } from '../../../shared/models/api-response.model';
 import { PurchasesApiService } from './api.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PurchaseDetailComponent } from './purchase-detail.component';

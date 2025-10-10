@@ -5,7 +5,7 @@ import { tapResponse } from '@ngrx/operators';
 import { AddressesApiService } from './api.service';
 import { Direccion, DireccionUpsertDto, Zona } from './addresses.model';
 import { AlertService } from '../../../shared/alert/alert.service';
-import { ApiError } from '../../../shared/api-response.model';
+import { ApiError } from '../../../shared/models/api-response.model';
 
 export interface AddressesState {
   isLoading: boolean;

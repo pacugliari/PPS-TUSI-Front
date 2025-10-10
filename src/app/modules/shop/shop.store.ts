@@ -3,7 +3,7 @@ import { ComponentStore } from '@ngrx/component-store';
 import { exhaustMap, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { AlertService } from '../../shared/alert/alert.service';
-import { ApiError } from '../../shared/api-response.model';
+import { ApiError } from '../../shared/models/api-response.model';
 import { Producto } from './shop.model';
 import { ApiService } from './api.service';
 

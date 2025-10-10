@@ -4,7 +4,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { GlobalStore } from '../../global-store';
-import { RolType } from '../../shared/rol.model';
+import { RolType } from '../../shared/models/rol.model';
 import { AddressesComponent } from './addresses/addresses.component';
 import { FavoritesComponent } from './favorites/favorites.component';
 import { ProfileComponent } from './profile/profile.component';

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../shared/api-response.model';
+import { ApiResponse } from '../../../shared/models/api-response.model';
 import { Direccion, DireccionUpsertDto, Zona } from './addresses.model';
 
 @Injectable({ providedIn: 'root' })

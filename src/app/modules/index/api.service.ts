@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Producto } from './index.model';
-import { ApiResponse } from '../../shared/api-response.model';
+import { ApiResponse } from '../../shared/models/api-response.model';
 
 @Injectable({
   providedIn: 'root',

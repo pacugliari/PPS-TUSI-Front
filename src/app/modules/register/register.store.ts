@@ -12,7 +12,7 @@ import { tap, EMPTY, exhaustMap } from 'rxjs';
 import { ApiService } from './api.service';
 import { tapResponse } from '@ngrx/operators';
 import { AlertService } from '../../shared/alert/alert.service';
-import { ApiError } from '../../shared/api-response.model';
+import { ApiError } from '../../shared/models/api-response.model';
 import { User } from './register.model';
 import { Router } from '@angular/router';
 

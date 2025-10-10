@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { catchError, throwError } from 'rxjs';
-import { ApiError } from './api-response.model';
+import { ApiError } from './models/api-response.model';
 
 export const apiErrorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(

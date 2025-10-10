@@ -1,4 +1,4 @@
-import { RolType } from '../../shared/rol.model';
+import { RolType } from '../../shared/models/rol.model';
 
 export interface LoginResponse {
   token: string;

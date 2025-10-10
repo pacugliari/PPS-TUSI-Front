@@ -134,6 +134,25 @@ import { CartStore } from './cart.store';
                 <div
                   class="flex flex-col lg:flex-row justify-between items-center gap-3 mt-6"
                 >
+                  <!-- Si HAY cupón aplicado: mostrar chip + cancelar -->
+                  @if (vm.coupon) {
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="inline-flex items-center gap-2 bg-green-50 text-green-700 border border-green-200 px-3 py-1 rounded-full"
+                    >
+                      Cupón: <b>{{ vm.coupon.code }}</b> ({{
+                        vm.coupon.percent
+                      }}%)
+                    </span>
+                    <button
+                      class="bg-white text-red-600 border border-red-500 hover:bg-red-50 rounded-full py-2 px-4"
+                      (click)="store.clearCoupon()"
+                    >
+                      Cancelar cupón
+                    </button>
+                  </div>
+                  } @else {
+                  <!-- Si NO hay cupón: input para aplicar -->
                   <div class="flex items-center">
                     <input
                       #code
@@ -149,6 +168,7 @@ import { CartStore } from './cart.store';
                       {{ vm.applyingCoupon ? 'Aplicando...' : 'Aplicar' }}
                     </button>
                   </div>
+                  }
 
                   <div class="flex gap-2">
                     <button
