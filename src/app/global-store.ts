@@ -156,7 +156,7 @@ export class GlobalStore extends ComponentStore<GlobalState> {
     return { ...s, user: null, token: '', cart: [], favorites: [] };
   });
 
-  readonly addToCart = this.updater<{ producto: Producto; cantidad?: number }>(
+  readonly addToCart = this.updater<{ producto: Omit<Producto, 'categoria' | 'precioAnterior'>; cantidad?: number }>(
     (state, { producto, cantidad = 1 }) => {
       if (!this.cartEnabledFor(state.user)) return state;
 
