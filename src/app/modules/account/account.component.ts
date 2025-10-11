@@ -5,12 +5,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { GlobalStore } from '../../global-store';
 import { RolType } from '../../shared/models/rol.model';
+
 import { AddressesComponent } from './addresses/addresses.component';
 import { FavoritesComponent } from './favorites/favorites.component';
 import { ProfileComponent } from './profile/profile.component';
-import { PedidosComponent } from "./purchases/purchases.component";
+import { PedidosComponent } from './purchases/purchases.component';
+import { CardsComponent } from './cards/cards.component';
 
-type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
+type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones' | 'tarjetas';
 
 @Component({
   selector: 'app-account',
@@ -24,8 +26,9 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
     AddressesComponent,
     FavoritesComponent,
     ProfileComponent,
-    PedidosComponent
-],
+    PedidosComponent,
+    CardsComponent,
+  ],
   template: `
     @if (vm$ | async) {
     <div class="grid grid-cols-12 gap-6 p-3">
@@ -61,6 +64,13 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
               <div matListItemTitle>Mis direcciones</div>
             </a>
 
+            <a mat-list-item class="!py-3"
+               [ngClass]="active() === 'tarjetas' ? 'bg-green-500 text-white' : 'hover:bg-green-50'"
+               (click)="setActive('tarjetas')">
+              <mat-icon matListItemIcon class="mr-3">credit_card</mat-icon>
+              <div matListItemTitle>Tarjetas</div>
+            </a>
+
             <a mat-list-item class="!py-3 text-red-600 hover:bg-red-50 cursor-pointer"
                (click)="store.logout()">
               <mat-icon matListItemIcon class="mr-3">logout</mat-icon>
@@ -85,6 +95,9 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones';
             }
             @case ('direcciones') {
               <app-addresses />
+            }
+            @case ('tarjetas') {
+              <app-cards />
             }
             @default {
               <div class="p-6 text-slate-600">Seleccioná una opción</div>
