@@ -4,10 +4,11 @@ import { Store } from './index.store';
 import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 import { GlobalStore } from '../../global-store';
 import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, SpinnerComponent,RouterLink],
+  imports: [CommonModule, SpinnerComponent, RouterLink, MatIconModule],
   providers: [Store],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: `
@@ -228,15 +229,55 @@ import { RouterLink } from '@angular/router';
           @for (product of vm.popularProducts; track $index) {
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
-              <a class="block" [routerLink]="['/product', product.idProducto]">
-                <img
-                  [src]="
-                    product.fotos[0] || 'assets/images/products/default.png'
+              <div class="relative mb-4">
+                <a
+                  class="block"
+                  [routerLink]="['/product', product.idProducto]"
+                >
+                  <img
+                    [src]="
+                      product.fotos[0] || 'assets/images/products/default.png'
+                    "
+                    [alt]="product.nombre"
+                    class="w-full object-cover mb-4 rounded-lg cursor-pointer"
+                  />
+                </a>
+
+                @if (globalStore.user$ | async) {
+                <button
+                  type="button"
+                  class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  (click)="
+                    $event.stopPropagation();
+                    globalStore.toggleFavorite(product.idProducto)
                   "
-                  [alt]="product.nombre"
-                  class="w-full object-cover mb-4 rounded-lg cursor-pointer"
-                />
-              </a>
+                  [attr.aria-pressed]="
+                    globalStore.isFavorite(product.idProducto)
+                  "
+                  [attr.aria-label]="
+                    globalStore.isFavorite(product.idProducto)
+                      ? 'Quitar de favoritos'
+                      : 'Agregar a favoritos'
+                  "
+                >
+                  <mat-icon
+                    class="block leading-none text-[20px] [transform:translateY(4px)]"
+                    [ngClass]="
+                      globalStore.isFavorite(product.idProducto)
+                        ? 'text-primary'
+                        : 'text-gray-400'
+                    "
+                  >
+                    {{
+                      globalStore.isFavorite(product.idProducto)
+                        ? 'favorite'
+                        : 'favorite_border'
+                    }}
+                  </mat-icon>
+                </button>
+                }
+              </div>
+
               <a
                 class="text-lg font-semibold mb-2 hover:text-primary block"
                 [routerLink]="['/product', product.idProducto]"
@@ -251,8 +292,8 @@ import { RouterLink } from '@angular/router';
                       | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
                   }}
                 </span>
-                @if(product.precioAnterior && product.precio <
-                product.precioAnterior){
+                @if (product.precioAnterior && product.precio <
+                product.precioAnterior) {
                 <span class="text-sm line-through ml-2">
                   {{
                     product.precioAnterior
@@ -282,15 +323,55 @@ import { RouterLink } from '@angular/router';
           @for (product of vm.latestProducts; track $index) {
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
-              <a class="block" [routerLink]="['/product', product.idProducto]">
-                <img
-                  [src]="
-                    product.fotos[0] || 'assets/images/products/default.png'
+              <div class="relative mb-4">
+                <a
+                  class="block"
+                  [routerLink]="['/product', product.idProducto]"
+                >
+                  <img
+                    [src]="
+                      product.fotos[0] || 'assets/images/products/default.png'
+                    "
+                    [alt]="product.nombre"
+                    class="w-full object-cover mb-4 rounded-lg cursor-pointer"
+                  />
+                </a>
+
+                @if (globalStore.user$ | async) {
+                <button
+                  type="button"
+                  class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  (click)="
+                    $event.stopPropagation();
+                    globalStore.toggleFavorite(product.idProducto)
                   "
-                  [alt]="product.nombre"
-                  class="w-full object-cover mb-4 rounded-lg cursor-pointer"
-                />
-              </a>
+                  [attr.aria-pressed]="
+                    globalStore.isFavorite(product.idProducto)
+                  "
+                  [attr.aria-label]="
+                    globalStore.isFavorite(product.idProducto)
+                      ? 'Quitar de favoritos'
+                      : 'Agregar a favoritos'
+                  "
+                >
+                  <mat-icon
+                    class="block leading-none text-[20px] [transform:translateY(4px)]"
+                    [ngClass]="
+                      globalStore.isFavorite(product.idProducto)
+                        ? 'text-primary'
+                        : 'text-gray-400'
+                    "
+                  >
+                    {{
+                      globalStore.isFavorite(product.idProducto)
+                        ? 'favorite'
+                        : 'favorite_border'
+                    }}
+                  </mat-icon>
+                </button>
+                }
+              </div>
+
               <a
                 class="text-lg font-semibold mb-2 hover:text-primary block"
                 [routerLink]="['/product', product.idProducto]"
@@ -305,8 +386,8 @@ import { RouterLink } from '@angular/router';
                       | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
                   }}
                 </span>
-                @if(product.precioAnterior && product.precio <
-                product.precioAnterior){
+                @if (product.precioAnterior && product.precio <
+                product.precioAnterior) {
                 <span class="text-sm line-through ml-2">
                   {{
                     product.precioAnterior

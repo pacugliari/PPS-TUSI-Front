@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [CommonModule, MatIconModule, SpinnerComponent,RouterLink],
+  imports: [CommonModule, MatIconModule, SpinnerComponent, RouterLink],
   providers: [Store],
   template: `
     @if(vm$ | async; as vm){ @if(vm.isLoading){
@@ -267,6 +267,7 @@ import { RouterLink } from '@angular/router';
                   </a>
 
                   <!-- Botón favoritos -->
+                  @if(globalStore.user$ | async){
                   <button
                     type="button"
                     class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
@@ -296,6 +297,7 @@ import { RouterLink } from '@angular/router';
                       }}
                     </mat-icon>
                   </button>
+                  }
                 </div>
 
                 <a

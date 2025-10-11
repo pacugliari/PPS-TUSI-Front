@@ -39,10 +39,6 @@ export class FavoritesStore extends ComponentStore<FavoritesState> {
     this.global.favorites$.pipe(
       tap(() => this.patchState({ isLoading: true, errors: null })),
       switchMap((ids) => {
-        if (!ids?.length) {
-          return of<Favorite[]>([]);
-        }
-
         const idSet = new Set(ids);
         const order = new Map<number, number>();
         ids.forEach((id, i) => order.set(id, i));

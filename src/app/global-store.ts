@@ -80,7 +80,7 @@ export class GlobalStore extends ComponentStore<GlobalState> {
   constructor(
     private router: Router,
     private sharedApiService: SharedApiService,
-    private readonly alertService : AlertService
+    private readonly alertService: AlertService
   ) {
     super(initialState);
   }
@@ -158,6 +158,7 @@ export class GlobalStore extends ComponentStore<GlobalState> {
       this.removePerUser(LS_FAVS_NS, user);
     }
 
+    this.hydrateCart(user);
     return { ...state, user, favorites: nextFavs };
   });
 
@@ -336,7 +337,6 @@ export class GlobalStore extends ComponentStore<GlobalState> {
 
         if (user) {
           this.setUser(user);
-          this.hydrateCart(user);
           const saved = this.getPerUser<Coupon | null>(LS_COUPON_NS, user);
           this.patchState({ coupon: saved ?? null });
         } else {
