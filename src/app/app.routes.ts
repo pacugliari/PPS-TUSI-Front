@@ -15,7 +15,7 @@ export const routes: Routes = [
     title: 'Registro',
   },
   {
-    path: 'product',
+    path: 'product/:id',
     loadComponent: () =>
       import('./modules/product/product.component').then(m => m.ProductComponent),
     title: 'Producto',

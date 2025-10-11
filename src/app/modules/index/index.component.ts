@@ -3,10 +3,11 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
 import { Store } from './index.store';
 import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 import { GlobalStore } from '../../global-store';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, SpinnerComponent],
+  imports: [CommonModule, SpinnerComponent,RouterLink],
   providers: [Store],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: `
@@ -225,28 +226,39 @@ import { GlobalStore } from '../../global-store';
         <h2 class="text-2xl font-bold mb-8">Productos populares</h2>
         <div class="flex flex-wrap -mx-4">
           @for (product of vm.popularProducts; track $index) {
-          <!-- Product 1 -->
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                [src]="product.fotos[0] || 'assets/images/products/default.png'"
-                alt="Producto 1"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2">{{
-                product.nombre
-              }}</a>
+              <a class="block" [routerLink]="['/product', product.idProducto]">
+                <img
+                  [src]="
+                    product.fotos[0] || 'assets/images/products/default.png'
+                  "
+                  [alt]="product.nombre"
+                  class="w-full object-cover mb-4 rounded-lg cursor-pointer"
+                />
+              </a>
+              <a
+                class="text-lg font-semibold mb-2 hover:text-primary block"
+                [routerLink]="['/product', product.idProducto]"
+              >
+                {{ product.nombre }}
+              </a>
               <p class="my-2">{{ product.categoria.nombre }}</p>
               <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary">{{
-                  product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
-                }}</span>
+                <span class="text-lg font-bold text-primary">
+                  {{
+                    product.precio
+                      | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                  }}
+                </span>
                 @if(product.precioAnterior && product.precio <
                 product.precioAnterior){
-                <span class="text-sm line-through ml-2">{{
-                  product.precioAnterior
-                    | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
-                }}</span>
+                <span class="text-sm line-through ml-2">
+                  {{
+                    product.precioAnterior
+                      | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                  }}
+                </span>
                 }
               </div>
               <button
@@ -268,28 +280,39 @@ import { GlobalStore } from '../../global-store';
         <h2 class="text-2xl font-bold mb-8">Últimos ingresos</h2>
         <div class="flex flex-wrap -mx-4">
           @for (product of vm.latestProducts; track $index) {
-          <!-- Product 1 -->
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
-              <img
-                [src]="product.fotos[0] || 'assets/images/products/default.png'"
-                [alt]="product.nombre"
-                class="w-full object-cover mb-4 rounded-lg"
-              />
-              <a href="#" class="text-lg font-semibold mb-2">{{
-                product.nombre
-              }}</a>
+              <a class="block" [routerLink]="['/product', product.idProducto]">
+                <img
+                  [src]="
+                    product.fotos[0] || 'assets/images/products/default.png'
+                  "
+                  [alt]="product.nombre"
+                  class="w-full object-cover mb-4 rounded-lg cursor-pointer"
+                />
+              </a>
+              <a
+                class="text-lg font-semibold mb-2 hover:text-primary block"
+                [routerLink]="['/product', product.idProducto]"
+              >
+                {{ product.nombre }}
+              </a>
               <p class="my-2">{{ product.categoria.nombre }}</p>
               <div class="flex items-center mb-4">
-                <span class="text-lg font-bold text-primary">{{
-                  product.precio | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
-                }}</span>
+                <span class="text-lg font-bold text-primary">
+                  {{
+                    product.precio
+                      | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                  }}
+                </span>
                 @if(product.precioAnterior && product.precio <
                 product.precioAnterior){
-                <span class="text-sm line-through ml-2">{{
-                  product.precioAnterior
-                    | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
-                }}</span>
+                <span class="text-sm line-through ml-2">
+                  {{
+                    product.precioAnterior
+                      | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
+                  }}
+                </span>
                 }
               </div>
               <button

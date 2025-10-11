@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 import { GlobalStore } from '../../global-store';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-shop',
   standalone: true,
-  imports: [CommonModule, MatIconModule, SpinnerComponent],
+  imports: [CommonModule, MatIconModule, SpinnerComponent,RouterLink],
   providers: [Store],
   template: `
     @if(vm$ | async; as vm){ @if(vm.isLoading){
@@ -257,17 +258,18 @@ import { GlobalStore } from '../../global-store';
               <div class="bg-white p-4 rounded-lg shadow">
                 <!-- Imagen + corazón -->
                 <div class="relative mb-4">
-                  <img
-                    [src]="p.fotos[0]"
-                    [alt]="p.nombre"
-                    class="w-full object-cover rounded-lg"
-                  />
+                  <a class="block" [routerLink]="['/product', p.idProducto]">
+                    <img
+                      [src]="p.fotos[0] || 'assets/images/products/default.png'"
+                      [alt]="p.nombre"
+                      class="w-full object-cover rounded-lg cursor-pointer"
+                    />
+                  </a>
 
                   <!-- Botón favoritos -->
                   <button
                     type="button"
-                    class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow
-         grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
                     (click)="
                       $event.stopPropagation();
                       globalStore.toggleFavorite(p.idProducto)
@@ -280,8 +282,7 @@ import { GlobalStore } from '../../global-store';
                     "
                   >
                     <mat-icon
-                      class="block leading-none text-[20px]
-           [transform:translateY(4px)]"
+                      class="block leading-none text-[20px] [transform:translateY(4px)]"
                       [ngClass]="
                         globalStore.isFavorite(p.idProducto)
                           ? 'text-primary'
@@ -297,10 +298,16 @@ import { GlobalStore } from '../../global-store';
                   </button>
                 </div>
 
-                <a href="#" class="text-lg font-semibold mb-2 block">{{
-                  p.nombre
-                }}</a>
-                <p class="my-2 text-gray-600">{{ p.descripcion }}</p>
+                <a
+                  class="text-lg font-semibold mb-2 block hover:text-primary"
+                  [routerLink]="['/product', p.idProducto]"
+                >
+                  {{ p.nombre }}
+                </a>
+
+                <p class="my-2 text-gray-600 line-clamp-2">
+                  {{ p.descripcion }}
+                </p>
 
                 <div class="flex items-center mb-4">
                   <span class="text-lg font-bold text-primary">
@@ -310,12 +317,20 @@ import { GlobalStore } from '../../global-store';
                   </span>
                 </div>
 
-                <button
-                  class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
-                  (click)="globalStore.addToCart({ producto: p })"
-                >
-                  Agregar al carrito
-                </button>
+                <div class="grid grid-cols-2 gap-2">
+                  <a
+                    class="border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2 px-4 rounded-full text-center"
+                    [routerLink]="['/product', p.idProducto]"
+                  >
+                    Ver detalle
+                  </a>
+                  <button
+                    class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                    (click)="globalStore.addToCart({ producto: p })"
+                  >
+                    Agregar
+                  </button>
+                </div>
               </div>
               }
             </div>
