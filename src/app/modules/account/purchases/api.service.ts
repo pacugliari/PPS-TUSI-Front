@@ -12,7 +12,7 @@ export class PurchasesApiService {
   constructor(private http: HttpClient) {}
 
   getPedidos(): Observable<ApiResponse<PedidoSummary[]>> {
-    return this.http.get<ApiResponse<{ rows: any[] }>>(this.baseUrl).pipe(
+    return this.http.get<ApiResponse<any>>(this.baseUrl).pipe(
       map((res) => ({
         ...res,
         payload: PedidoSummary.adaptList(res?.payload?.rows ?? []),

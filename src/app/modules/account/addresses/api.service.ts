@@ -19,7 +19,6 @@ export class AddressesApiService {
         ...res,
         payload: Direccion.adaptList(res?.payload ?? []),
       })),
-      // Mock "feliz" si falla el backend
       catchError(() =>
         of({
           statusCode: 200,
