@@ -8,7 +8,7 @@ export class CardsApiService {
   constructor(private http: HttpClient) {}
 
   list(): Observable<Card[]> {
-    return this.http.get<ApiResponse<Card[]>>('/cards').pipe(
+    return this.http.get<ApiResponse<Card[]>>('account/cards').pipe(
       map(res => res?.payload ?? []),
       catchError(err => {
         console.warn('[CardsApiService] list error, mock ->', err);
@@ -34,7 +34,7 @@ export class CardsApiService {
   }
 
   create(body: CardCreateRequest): Observable<Card> {
-    return this.http.post<ApiResponse<Card>>('/cards', body).pipe(
+    return this.http.post<ApiResponse<Card>>('account/cards', body).pipe(
       map(res => res?.payload as Card),
       catchError(err => {
         console.warn('[CardsApiService] create error, mock ->', err);
@@ -52,7 +52,7 @@ export class CardsApiService {
   }
 
   delete(idTarjeta: number): Observable<{ idTarjeta: number }> {
-    return this.http.delete<ApiResponse<{ idTarjeta: number }>>(`/cards/${idTarjeta}`).pipe(
+    return this.http.delete<ApiResponse<{ idTarjeta: number }>>(`account/cards/${idTarjeta}`).pipe(
       map(res => res?.payload ?? { idTarjeta }),
       catchError(err => {
         console.warn('[CardsApiService] delete error, mock ->', err);

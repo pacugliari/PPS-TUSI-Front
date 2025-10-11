@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { exhaustMap, forkJoin, of, tap } from 'rxjs';
+import { exhaustMap, forkJoin, of, tap, withLatestFrom } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { AddressesApiService } from './api.service';
 import { Direccion, DireccionUpsertDto, Zona } from './addresses.model';
@@ -46,12 +46,37 @@ export class AddressesStore extends ComponentStore<AddressesState> {
   }));
 
   readonly setEditingId = this.updater<number | null | undefined>(
-    (state, editingId) => ({ ...state, editingId })
+    (state, editingId) => ({
+      ...state,
+      editingId,
+    })
   );
 
   readonly setSaving = this.updater<boolean>((state, saving) => ({
     ...state,
     saving,
+  }));
+
+  // Helpers optimistas
+  private readonly addOrReplaceDireccion = this.updater<Direccion>((s, d) => {
+    const idx = s.direcciones.findIndex((x) => x.idDireccion === d.idDireccion);
+    const direcciones = [...s.direcciones];
+    if (idx >= 0) direcciones[idx] = d;
+    else direcciones.unshift(d);
+    return { ...s, direcciones };
+  });
+
+  private readonly removeDireccionById = this.updater<number>((s, id) => ({
+    ...s,
+    direcciones: s.direcciones.filter((x) => x.idDireccion !== id),
+  }));
+
+  private readonly markPrincipal = this.updater<number>((s, id) => ({
+    ...s,
+    direcciones: s.direcciones.map((x) => ({
+      ...x,
+      principal: x.idDireccion === id,
+    })),
   }));
 
   // --------- EFFECTS ----------
@@ -65,8 +90,7 @@ export class AddressesStore extends ComponentStore<AddressesState> {
         }).pipe(
           tapResponse({
             next: ({ direcciones, zonas }) => {
-              const list = (direcciones?.payload ?? []).map(Direccion.adapt);
-              this.setDirecciones(list);
+              this.setDirecciones(direcciones?.payload ?? []);
               this.setZonas(zonas?.payload ?? []);
             },
             error: (errors: ApiError) => {
@@ -88,62 +112,85 @@ export class AddressesStore extends ComponentStore<AddressesState> {
   readonly saveDireccion = this.effect<DireccionUpsertDto>(($) =>
     $.pipe(
       tap(() => this.setSaving(true)),
-      exhaustMap((payload) =>
-        this.select((s) => s.editingId).pipe(
-          exhaustMap((editingId) => {
-            if (editingId === null) {
-              return this.api.createDireccion(payload);
-            } else if (typeof editingId === 'number') {
-              return this.api.updateDireccion(editingId, payload);
-            } else {
-              return of(null);
-            }
-          }),
-          tapResponse({
-            next: () => {
-              this.setEditingId(undefined);
-              this.loadData();
-            },
-            error: (err) => {
-              console.error(err);
-              this.alertService.showError(['Error guardando dirección']);
-            },
-            finalize: () => this.setSaving(false),
-          })
-        )
-      )
+      withLatestFrom(this.select((s) => s.editingId)),
+      exhaustMap(([payload, editingId]) => {
+        if (editingId === null) {
+          return this.api.createDireccion(payload).pipe(
+            tapResponse({
+              next: (res) => {
+                const created = res?.payload as Direccion;
+                this.addOrReplaceDireccion(created);
+                this.setEditingId(undefined);
+              },
+              error: (err) => {
+                console.error(err);
+                this.alertService.showError(['Error guardando dirección']);
+              },
+              finalize: () => this.setSaving(false),
+            })
+          );
+        } else if (typeof editingId === 'number') {
+          return this.api.updateDireccion(editingId, payload).pipe(
+            tapResponse({
+              next: (res) => {
+                const updated = res?.payload as Direccion;
+                this.addOrReplaceDireccion(updated);
+                this.setEditingId(undefined);
+              },
+              error: (err) => {
+                console.error(err);
+                this.alertService.showError(['Error guardando dirección']);
+              },
+              finalize: () => this.setSaving(false),
+            })
+          );
+        } else {
+          this.setSaving(false);
+          return of(null);
+        }
+      })
     )
   );
 
+  // Eliminar (optimista con rollback)
   readonly deleteDireccion = this.effect<number>(($) =>
     $.pipe(
-      exhaustMap((id) =>
-        this.api.deleteDireccion(id).pipe(
+      withLatestFrom(this.select((s) => s.direcciones)),
+      exhaustMap(([id, prev]) => {
+        this.removeDireccionById(id);
+        return this.api.deleteDireccion(id).pipe(
           tapResponse({
-            next: () => this.loadData(),
+            next: () => {},
             error: (err) => {
               console.error(err);
               this.alertService.showError(['Error eliminando dirección']);
+              this.setDirecciones(prev);
             },
           })
-        )
-      )
+        );
+      })
     )
   );
 
   readonly setPrincipal = this.effect<number>(($) =>
     $.pipe(
-      exhaustMap((id) =>
-        this.api.setDireccionPrincipal(id).pipe(
+      withLatestFrom(this.select((s) => s.direcciones)),
+      exhaustMap(([id, prev]) => {
+        this.markPrincipal(id);
+        return this.api.setDireccionPrincipal(id).pipe(
           tapResponse({
-            next: () => this.loadData(),
+            next: (res) => {
+              const updated = res?.payload as Direccion | undefined;
+              if (updated) this.addOrReplaceDireccion(updated);
+            },
             error: (err) => {
               console.error(err);
               this.alertService.showError(['Error marcando como principal']);
+              this.setDirecciones(prev);
             },
           })
-        )
-      )
+        );
+      })
     )
   );
 
