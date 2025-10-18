@@ -1,63 +1,41 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { catchError, map, of, Observable } from 'rxjs';
-import { ApiResponse, Card, CardCreateRequest, CardValidateRequest } from './cards.model';
+import {
+  Bank,
+  Card,
+  CardCreateRequest,
+  CardValidateRequest,
+} from './cards.model';
+import { environment } from '../../../../environments/environment';
+import { ApiResponse } from '../../../shared/models/api-response.model';
 
 @Injectable({ providedIn: 'root' })
 export class CardsApiService {
   constructor(private http: HttpClient) {}
 
   list(): Observable<Card[]> {
-    return this.http.get<ApiResponse<Card[]>>('account/cards').pipe(
-      map(res => res?.payload ?? []),
-      catchError(err => {
-        console.warn('[CardsApiService] list error, mock ->', err);
-        const mock: Card[] = [
-          {
-            idTarjeta: 145,
-            tipo: 'VISA',
-            last4: '1111',
-            maskedNumber: '**** **** **** 1111',
-            createdAt: new Date().toISOString(),
-          },
-          {
-            idTarjeta: 146,
-            tipo: 'MASTERCARD',
-            last4: '4444',
-            maskedNumber: '**** **** **** 4444',
-            createdAt: new Date().toISOString(),
-          },
-        ];
-        return of(mock);
-      })
+    return this.http
+      .get<ApiResponse<{ data: Card[] }>>(`${environment.API_URL}account/cards`)
+      .pipe(map((res) => res?.payload?.data ?? []));
+  }
+
+  options(): Observable<Bank[]> {
+    return this.http
+      .get<ApiResponse<Bank[]>>(`${environment.API_URL}account/cards/options`)
+      .pipe(map((res) => res?.payload ?? []));
+  }
+
+  create(body: CardCreateRequest): Observable<ApiResponse<Card>> {
+    return this.http.post<ApiResponse<Card>>(
+      `${environment.API_URL}account/cards`,
+      body
     );
   }
 
-  create(body: CardCreateRequest): Observable<Card> {
-    return this.http.post<ApiResponse<Card>>('account/cards', body).pipe(
-      map(res => res?.payload as Card),
-      catchError(err => {
-        console.warn('[CardsApiService] create error, mock ->', err);
-        const last4 = body.numero.slice(-4);
-        const mock: Card = {
-          idTarjeta: Math.floor(Math.random() * 10000) + 100,
-          tipo: body.tipo,
-          last4,
-          maskedNumber: `**** **** **** ${last4}`,
-          createdAt: new Date().toISOString(),
-        };
-        return of(mock);
-      })
-    );
-  }
-
-  delete(idTarjeta: number): Observable<{ idTarjeta: number }> {
-    return this.http.delete<ApiResponse<{ idTarjeta: number }>>(`account/cards/${idTarjeta}`).pipe(
-      map(res => res?.payload ?? { idTarjeta }),
-      catchError(err => {
-        console.warn('[CardsApiService] delete error, mock ->', err);
-        return of({ idTarjeta });
-      })
+  delete(idTarjeta: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(
+      `${environment.API_URL}account/cards/${idTarjeta}`
     );
   }
 }

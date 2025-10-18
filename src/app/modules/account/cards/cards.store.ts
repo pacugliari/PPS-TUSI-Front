@@ -1,16 +1,21 @@
 import { Injectable, inject } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { Card, CardType } from './cards.model';
+import { Bank, Card, CardType } from './cards.model';
 import { tap, switchMap, withLatestFrom } from 'rxjs';
 import { CardsApiService } from './api.service';
+import { AlertService } from '../../../shared/alert/alert.service';
+
+
 
 interface CardsState {
   cards: Card[];
+  bancos: Bank[];
   isLoading: boolean;
   isSubmitting: boolean;
   error?: string | null;
 
   // form
+  idBanco: number | null;
   tipo: CardType | null;
   numero: string;
   codigo: string;
@@ -18,9 +23,11 @@ interface CardsState {
 
 const initialState: CardsState = {
   cards: [],
+  bancos: [],
   isLoading: false,
   isSubmitting: false,
   error: null,
+  idBanco: null,
   tipo: null,
   numero: '',
   codigo: '',
@@ -29,27 +36,30 @@ const initialState: CardsState = {
 @Injectable()
 export class CardsStore extends ComponentStore<CardsState> {
   private readonly api = inject(CardsApiService);
+  private readonly alertService = inject(AlertService);
 
-  // selectors “atómicos”
   readonly cards$ = this.select((s) => s.cards);
+  readonly bancos$ = this.select((s) => s.bancos);
   readonly isLoading$ = this.select((s) => s.isLoading);
   readonly isSubmitting$ = this.select((s) => s.isSubmitting);
   readonly error$ = this.select((s) => s.error);
-  readonly form$ = this.select(({ tipo, numero, codigo }) => ({
+  readonly form$ = this.select(({ idBanco, tipo, numero, codigo }) => ({
+    idBanco,
     tipo,
     numero,
     codigo,
   }));
 
-  // VM única para el componente
   readonly vm$ = this.select(
     this.cards$,
+    this.bancos$,
     this.isLoading$,
     this.isSubmitting$,
     this.error$,
     this.form$,
-    (cards, isLoading, isSubmitting, error, form) => ({
+    (cards, bancos, isLoading, isSubmitting, error, form) => ({
       cards,
+      bancos,
       isLoading,
       isSubmitting,
       error,
@@ -60,9 +70,13 @@ export class CardsStore extends ComponentStore<CardsState> {
   constructor() {
     super(initialState);
     this.load();
+    this.loadBancos();
   }
 
-  // updaters
+  readonly setIdBanco = this.updater<number | null>((s, idBanco) => ({
+    ...s,
+    idBanco,
+  }));
   readonly setTipo = this.updater<CardType | null>((s, tipo) => ({
     ...s,
     tipo,
@@ -72,6 +86,10 @@ export class CardsStore extends ComponentStore<CardsState> {
   private readonly setCards = this.updater<Card[]>((s, cards) => ({
     ...s,
     cards,
+  }));
+  private readonly setBancos = this.updater<Bank[]>((s, bancos) => ({
+    ...s,
+    bancos,
   }));
   private readonly setIsLoading = this.updater<boolean>((s, v) => ({
     ...s,
@@ -85,7 +103,6 @@ export class CardsStore extends ComponentStore<CardsState> {
     (s, e) => ({ ...s, error: e })
   );
 
-  // effects
   readonly load = this.effect<void>(($) =>
     $.pipe(
       tap(() => this.setIsLoading(true)),
@@ -100,7 +117,18 @@ export class CardsStore extends ComponentStore<CardsState> {
     )
   );
 
-  /** Valida y registra en un solo flujo */
+  readonly loadBancos = this.effect<void>(($) =>
+    $.pipe(
+      switchMap(() =>
+        this.api.options().pipe(
+          tap((bancos) => {
+            this.setBancos(bancos ?? []);
+          })
+        )
+      )
+    )
+  );
+
   readonly register = this.effect<void>(($) =>
     $.pipe(
       withLatestFrom(this.form$),
@@ -111,18 +139,23 @@ export class CardsStore extends ComponentStore<CardsState> {
       switchMap(([, form]) =>
         this.api
           .create({
+            idBanco: form.idBanco as number,
             tipo: form.tipo as CardType,
             numero: form.numero,
             codigo: form.codigo,
           })
           .pipe(
             tap({
-              next: (created) => {
-                const { cards } = this.get();
-                this.setCards([created, ...cards]);
+              next: (res) => {
+                this.load();
                 this.setIsSubmitting(false);
-                // limpiar form
-                this.patchState({ tipo: null, numero: '', codigo: '' });
+                this.alertService.showSuccess(res.message);
+                this.patchState({
+                  idBanco: null,
+                  tipo: null,
+                  numero: '',
+                  codigo: '',
+                });
               },
               error: () => {
                 this.setIsSubmitting(false);
@@ -139,11 +172,9 @@ export class CardsStore extends ComponentStore<CardsState> {
       tap(() => this.setIsSubmitting(true)),
       switchMap((id) =>
         this.api.delete(id).pipe(
-          tap(({ idTarjeta }) => {
-            const left = this.get().cards.filter(
-              (c) => c.idTarjeta !== idTarjeta
-            );
-            this.setCards(left);
+          tap((res) => {
+            this.load();
+            this.alertService.showSuccess(res.message);
             this.setIsSubmitting(false);
           })
         )

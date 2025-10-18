@@ -9,7 +9,7 @@ import { Direccion, DireccionUpsertDto, Zona } from './addresses.model';
 @Injectable({ providedIn: 'root' })
 export class AddressesApiService {
   private readonly baseUrl = `${environment.API_URL}account/addresses`;
-  private readonly zonesUrl = `${environment.API_URL}account/zones`;
+  private readonly zonesUrl = `${environment.API_URL}account/addresses/options`;
 
   constructor(private http: HttpClient) {}
 
