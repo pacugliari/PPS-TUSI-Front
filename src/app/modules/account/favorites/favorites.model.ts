@@ -30,4 +30,8 @@ export class Favorite {
       fotos
     );
   }
+
+  static adaptList(list?: any[]): Favorite[] {
+    return Array.isArray(list) ? list.map(Favorite.adapt) : [];
+  }
 }

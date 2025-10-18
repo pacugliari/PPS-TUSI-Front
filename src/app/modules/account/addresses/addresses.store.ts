@@ -57,15 +57,6 @@ export class AddressesStore extends ComponentStore<AddressesState> {
     saving,
   }));
 
-  // Helpers optimistas
-  private readonly addOrReplaceDireccion = this.updater<Direccion>((s, d) => {
-    const idx = s.direcciones.findIndex((x) => x.idDireccion === d.idDireccion);
-    const direcciones = [...s.direcciones];
-    if (idx >= 0) direcciones[idx] = d;
-    else direcciones.unshift(d);
-    return { ...s, direcciones };
-  });
-
   private readonly removeDireccionById = this.updater<number>((s, id) => ({
     ...s,
     direcciones: s.direcciones.filter((x) => x.idDireccion !== id),
@@ -119,8 +110,9 @@ export class AddressesStore extends ComponentStore<AddressesState> {
             tapResponse({
               next: (res) => {
                 const created = res?.payload as Direccion;
-                this.addOrReplaceDireccion(created);
                 this.setEditingId(undefined);
+                this.alertService.showSuccess(res.message);
+                this.loadData();
               },
               error: (err) => {
                 console.error(err);
@@ -134,8 +126,9 @@ export class AddressesStore extends ComponentStore<AddressesState> {
             tapResponse({
               next: (res) => {
                 const updated = res?.payload as Direccion;
-                this.addOrReplaceDireccion(updated);
                 this.setEditingId(undefined);
+                this.alertService.showSuccess(res.message);
+                this.loadData();
               },
               error: (err) => {
                 console.error(err);
@@ -152,7 +145,6 @@ export class AddressesStore extends ComponentStore<AddressesState> {
     )
   );
 
-  // Eliminar (optimista con rollback)
   readonly deleteDireccion = this.effect<number>(($) =>
     $.pipe(
       withLatestFrom(this.select((s) => s.direcciones)),
@@ -160,7 +152,10 @@ export class AddressesStore extends ComponentStore<AddressesState> {
         this.removeDireccionById(id);
         return this.api.deleteDireccion(id).pipe(
           tapResponse({
-            next: () => {},
+            next: (res) => {
+              this.alertService.showSuccess(res.message);
+              this.loadData();
+            },
             error: (err) => {
               console.error(err);
               this.alertService.showError(['Error eliminando dirección']);
@@ -181,7 +176,9 @@ export class AddressesStore extends ComponentStore<AddressesState> {
           tapResponse({
             next: (res) => {
               const updated = res?.payload as Direccion | undefined;
-              if (updated) this.addOrReplaceDireccion(updated);
+              this.alertService.showSuccess(res.message);
+
+              this.loadData();
             },
             error: (err) => {
               console.error(err);

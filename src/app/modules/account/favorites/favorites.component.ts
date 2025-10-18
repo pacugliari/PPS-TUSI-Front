@@ -4,14 +4,21 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { FavoritesStore } from './favorites.store';
+import { SpinnerComponent } from '../../../shared/spinner/spinner.component';
 
 @Component({
   selector: 'app-favorites',
   standalone: true,
   providers: [FavoritesStore],
-  imports: [CommonModule, MatButtonModule, MatIconModule, MatDividerModule],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule,
+    SpinnerComponent,
+  ],
   template: `
-    @if (store.vm$ | async; as vm) {
+    @if (store.vm$ | async; as vm) { @if (vm.isLoading) { <app-spinner /> }
     <header class="text-center py-4">
       <h2 class="text-xl font-semibold text-indigo-900">Favoritos</h2>
     </header>

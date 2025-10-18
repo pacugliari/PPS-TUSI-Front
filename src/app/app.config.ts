@@ -12,6 +12,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { apiErrorInterceptor } from './shared/api-error.interceptor';
 import { registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
+import { tokenInterceptor } from './shared/token.interceptor';
 
 registerLocaleData(localeEsAr);
 
@@ -22,6 +23,6 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideStore(),
     { provide: LOCALE_ID, useValue: 'es-AR' },
-    provideHttpClient(withInterceptors([apiErrorInterceptor])),
+    provideHttpClient(withInterceptors([apiErrorInterceptor,tokenInterceptor])),
   ],
 };
