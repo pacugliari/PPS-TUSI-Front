@@ -7,7 +7,7 @@ import { PedidoDetail, PedidoSummary } from './purchases.model';
 
 @Injectable({ providedIn: 'root' })
 export class PurchasesApiService {
-  private readonly baseUrl = `${environment.API_URL}/account/orders`;
+  private readonly baseUrl = `${environment.API_URL}account/orders`;
 
   constructor(private http: HttpClient) {}
 
@@ -15,36 +15,8 @@ export class PurchasesApiService {
     return this.http.get<ApiResponse<any>>(this.baseUrl).pipe(
       map((res) => ({
         ...res,
-        payload: PedidoSummary.adaptList(res?.payload?.rows ?? []),
-      })),
-      catchError(() =>
-        of({
-          statusCode: 200,
-          success: true,
-          message: 'Pedidos mock',
-          payload: PedidoSummary.adaptList([
-            {
-              idPedido: 1,
-              fecha: '2025-09-25T11:13:39.000Z',
-              estado: 'pagado',
-              impuestos: '89250.00',
-              subtotal: '425000.00',
-              total: '514250.00',
-              formaPago: 'electronico',
-            },
-            {
-              idPedido: 4,
-              fecha: '2025-09-25T11:13:39.000Z',
-              estado: 'pendiente',
-              impuestos: '70875.00',
-              subtotal: '337500.00',
-              total: '408375.00',
-              formaPago: 'efectivo',
-            },
-          ]),
-          errors: [],
-        } as ApiResponse<PedidoSummary[]>)
-      )
+        payload: PedidoSummary.adaptList(res?.payload ?? []),
+      }))
     );
   }
 
