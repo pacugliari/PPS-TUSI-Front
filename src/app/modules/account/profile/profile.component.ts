@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ProfileStore } from './profile.store';
 import { ProfileUpsertDto } from './profile.model';
+import { SpinnerComponent } from "../../../shared/spinner/spinner.component";
 
 @Component({
   selector: 'app-profile',
@@ -20,9 +21,10 @@ import { ProfileUpsertDto } from './profile.model';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-  ],
+    SpinnerComponent
+],
   template: `
-    @if (vm$ | async; as vm) {
+    @if (vm$ | async; as vm) { @if(vm.isLoading) {<app-spinner />}
     <header class="text-center py-4">
       <h2 class="text-xl font-semibold text-indigo-900">Datos Personales</h2>
     </header>
@@ -122,7 +124,7 @@ export class ProfileComponent {
       email: (v.email ?? '').trim(),
       telefono: (v.telefono ?? '').trim(),
       tipoDoc: (v.tipoDoc ?? '').trim(),
-      dni: (v.dni ?? '').trim(),
+      dni: (v.dni?.toString() ?? '').trim(),
     };
   }
 

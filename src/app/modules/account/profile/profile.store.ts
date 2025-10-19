@@ -6,6 +6,7 @@ import { ProfileModel, ProfileUpsertDto } from './profile.model';
 import { ApiError } from '../../../shared/models/api-response.model';
 import { ProfileApiService } from './api.service';
 import { FormGroup } from '@angular/forms';
+import { AlertService } from '../../../shared/alert/alert.service';
 
 export interface ProfileState {
   isLoading: boolean;
@@ -22,6 +23,7 @@ const initialState: ProfileState = {
 @Injectable()
 export class ProfileStore extends ComponentStore<ProfileState> {
   private readonly api = inject(ProfileApiService);
+  private readonly alertService = inject(AlertService);
 
   constructor() {
     super(initialState);
@@ -52,7 +54,9 @@ export class ProfileStore extends ComponentStore<ProfileState> {
       exhaustMap(() =>
         this.api.getProfile().pipe(
           tapResponse({
-            next: (profile) => this.patchState({ profile }),
+            next: (res) => {
+              this.patchState({ profile: ProfileModel.adapt(res.payload) });
+            },
             error: (errors: ApiError) =>
               this.patchState({ profile: null, errors }),
             finalize: () => this.patchState({ isLoading: false }),
@@ -68,7 +72,11 @@ export class ProfileStore extends ComponentStore<ProfileState> {
       exhaustMap((dto) =>
         this.api.updateProfile(dto).pipe(
           tapResponse({
-            next: (profile) => this.patchState({ profile }),
+            next: (res) => {
+              this.patchState({ profile: ProfileModel.adapt(res.payload) });
+              this.alertService.showSuccess(res.message);
+              this.loadProfile();
+            },
             error: (errors: ApiError) =>
               this.patchState({ profile: null, errors }),
             finalize: () => this.patchState({ isLoading: false }),
