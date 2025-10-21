@@ -17,6 +17,7 @@ import { ProfileComponent } from './profile/profile.component';
 import { PedidosComponent } from './purchases/purchases.component';
 import { CardsComponent } from './cards/cards.component';
 import { CouponsComponent } from './ coupons/ coupons.component';
+import { ZonesComponent } from './zones/zones.component';
 
 type MenuKey =
   | 'datos'
@@ -24,7 +25,8 @@ type MenuKey =
   | 'favoritos'
   | 'direcciones'
   | 'tarjetas'
-  | 'cupones';
+  | 'cupones'
+  | 'zonas';
 
 @Component({
   selector: 'app-account',
@@ -41,6 +43,7 @@ type MenuKey =
     PedidosComponent,
     CardsComponent,
     CouponsComponent,
+    ZonesComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -136,6 +139,20 @@ type MenuKey =
               <mat-icon matListItemIcon class="mr-3">local_offer</mat-icon>
               <div matListItemTitle>Cupones</div>
             </a>
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'zonas'
+                  ? 'bg-blue-500 text-white'
+                  : 'hover:bg-blue-50'
+              "
+              (click)="setActive('zonas')"
+            >
+              <mat-icon matListItemIcon class="mr-3">map</mat-icon>
+              <div matListItemTitle>Zonas</div>
+            </a>
+
             } }
 
             <a
@@ -165,6 +182,8 @@ type MenuKey =
           <app-cards />
           } @case ('cupones') {
           <app-coupons />
+          } @case ('zonas') {
+          <app-zones />
           }@default {
           <div class="p-6 text-slate-600">Seleccioná una opción</div>
           } }
