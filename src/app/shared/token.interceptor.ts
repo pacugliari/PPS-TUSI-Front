@@ -1,8 +1,5 @@
 // shared/token.interceptor.ts
-import {
-  HttpInterceptorFn,
-  HttpStatusCode,
-} from '@angular/common/http';
+import { HttpInterceptorFn, HttpStatusCode } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { GlobalStore } from '../global-store';
@@ -26,6 +23,10 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
           if (err.status === HttpStatusCode.Unauthorized) {
             globalStore.clearState();
             router.navigate(['./login']);
+          }
+          if (err.status === HttpStatusCode.Forbidden) {
+            alertService.showError([err.error?.message]);
+            router.navigate(['.']);
           }
           if (err.status === HttpStatusCode.UnprocessableEntity && token) {
             alertService.showError([err.error?.message]);

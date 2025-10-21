@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  signal,
+} from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,8 +16,15 @@ import { FavoritesComponent } from './favorites/favorites.component';
 import { ProfileComponent } from './profile/profile.component';
 import { PedidosComponent } from './purchases/purchases.component';
 import { CardsComponent } from './cards/cards.component';
+import { CouponsComponent } from './ coupons/ coupons.component';
 
-type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones' | 'tarjetas';
+type MenuKey =
+  | 'datos'
+  | 'compras'
+  | 'favoritos'
+  | 'direcciones'
+  | 'tarjetas'
+  | 'cupones';
 
 @Component({
   selector: 'app-account',
@@ -28,51 +40,109 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones' | 'tarjetas';
     ProfileComponent,
     PedidosComponent,
     CardsComponent,
+    CouponsComponent,
   ],
   template: `
-    @if (vm$ | async) {
+    @if (vm$ | async; as vm) {
     <div class="grid grid-cols-12 gap-6 p-3">
       <!-- SIDEBAR -->
       <aside class="col-span-12 md:col-span-3">
-        <nav class="rounded-md border border-slate-200 overflow-hidden bg-white">
+        <nav
+          class="rounded-md border border-slate-200 overflow-hidden bg-white"
+        >
           <mat-nav-list>
-            <a mat-list-item class="!py-3"
-               [ngClass]="active() === 'datos' ? 'bg-green-500 text-white' : 'hover:bg-green-50'"
-               (click)="setActive('datos')">
+            @switch (vm.user?.role?.tipo) { @case (rolTypes.OPERARIO) { } @case
+            (rolTypes.USUARIO) {
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'datos'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('datos')"
+            >
               <mat-icon matListItemIcon class="mr-3">person</mat-icon>
               <div matListItemTitle>Mis datos</div>
             </a>
 
-            <a mat-list-item class="!py-3"
-               [ngClass]="active() === 'compras' ? 'bg-green-500 text-white' : 'hover:bg-green-50'"
-               (click)="setActive('compras')">
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'compras'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('compras')"
+            >
               <mat-icon matListItemIcon class="mr-3">receipt_long</mat-icon>
               <div matListItemTitle>Mis compras</div>
             </a>
 
-            <a mat-list-item class="!py-3"
-               [ngClass]="active() === 'favoritos' ? 'bg-green-500 text-white' : 'hover:bg-green-50'"
-               (click)="setActive('favoritos')">
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'favoritos'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('favoritos')"
+            >
               <mat-icon matListItemIcon class="mr-3">favorite</mat-icon>
               <div matListItemTitle>Favoritos</div>
             </a>
 
-            <a mat-list-item class="!py-3"
-               [ngClass]="active() === 'direcciones' ? 'bg-green-500 text-white' : 'hover:bg-green-50'"
-               (click)="setActive('direcciones')">
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'direcciones'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('direcciones')"
+            >
               <mat-icon matListItemIcon class="mr-3">place</mat-icon>
               <div matListItemTitle>Mis direcciones</div>
             </a>
 
-            <a mat-list-item class="!py-3"
-               [ngClass]="active() === 'tarjetas' ? 'bg-green-500 text-white' : 'hover:bg-green-50'"
-               (click)="setActive('tarjetas')">
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'tarjetas'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('tarjetas')"
+            >
               <mat-icon matListItemIcon class="mr-3">credit_card</mat-icon>
               <div matListItemTitle>Tarjetas</div>
             </a>
+            } @case (rolTypes.ADMINISTRADOR) {
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'cupones'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('cupones')"
+            >
+              <mat-icon matListItemIcon class="mr-3">local_offer</mat-icon>
+              <div matListItemTitle>Cupones</div>
+            </a>
+            } }
 
-            <a mat-list-item class="!py-3 text-red-600 hover:bg-red-50 cursor-pointer"
-               (click)="store.logout()">
+            <a
+              mat-list-item
+              class="!py-3 text-red-600 hover:bg-red-50 cursor-pointer"
+              (click)="store.logout()"
+            >
               <mat-icon matListItemIcon class="mr-3">logout</mat-icon>
               <div matListItemTitle>Cerrar sesión</div>
             </a>
@@ -83,26 +153,21 @@ type MenuKey = 'datos' | 'compras' | 'favoritos' | 'direcciones' | 'tarjetas';
       <!-- CONTENT -->
       <section class="col-span-12 md:col-span-9">
         <div class="rounded-md border border-slate-200 bg-white">
-          @switch (active()) {
-            @case ('datos') {
-              <app-profile />
-            }
-            @case ('compras') {
-              <app-purchases />
-            }
-            @case ('favoritos') {
-              <app-favorites />
-            }
-            @case ('direcciones') {
-              <app-addresses />
-            }
-            @case ('tarjetas') {
-              <app-cards />
-            }
-            @default {
-              <div class="p-6 text-slate-600">Seleccioná una opción</div>
-            }
-          }
+          @switch (active()) { @case ('datos') {
+          <app-profile />
+          } @case ('compras') {
+          <app-purchases />
+          } @case ('favoritos') {
+          <app-favorites />
+          } @case ('direcciones') {
+          <app-addresses />
+          } @case ('tarjetas') {
+          <app-cards />
+          } @case ('cupones') {
+          <app-coupons />
+          }@default {
+          <div class="p-6 text-slate-600">Seleccioná una opción</div>
+          } }
         </div>
       </section>
     </div>
@@ -115,7 +180,7 @@ export class AccountComponent {
   protected readonly store = inject(GlobalStore);
   protected readonly vm$ = this.store.vm$;
 
-  active = signal<MenuKey>('datos');
+  active = signal<MenuKey | null>(null);
 
   setActive(k: MenuKey) {
     this.active.set(k);

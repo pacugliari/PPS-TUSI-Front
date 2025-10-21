@@ -13,6 +13,7 @@ import { apiErrorInterceptor } from './shared/api-error.interceptor';
 import { registerLocaleData } from '@angular/common';
 import localeEsAr from '@angular/common/locales/es-AR';
 import { tokenInterceptor } from './shared/token.interceptor';
+import { provideNativeDateAdapter } from '@angular/material/core';
 
 registerLocaleData(localeEsAr);
 
@@ -22,6 +23,7 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideStore(),
+    provideNativeDateAdapter(),
     { provide: LOCALE_ID, useValue: 'es-AR' },
     provideHttpClient(withInterceptors([apiErrorInterceptor,tokenInterceptor])),
   ],
