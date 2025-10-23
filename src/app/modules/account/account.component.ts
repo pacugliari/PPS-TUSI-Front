@@ -20,6 +20,7 @@ import { CouponsComponent } from './ coupons/ coupons.component';
 import { ZonesComponent } from './zones/zones.component';
 import { BanksComponent } from './banks/banks.component';
 import { BankPromosComponent } from './bank-promos/bank-promos.component';
+import { BrandsComponent } from './brands/brands.component';
 
 type MenuKey =
   | 'datos'
@@ -30,7 +31,8 @@ type MenuKey =
   | 'cupones'
   | 'zonas'
   | 'bancos'
-  | 'bancos_promociones';
+  | 'bancos_promociones'
+  | 'marcas';
 
 @Component({
   selector: 'app-account',
@@ -50,6 +52,7 @@ type MenuKey =
     ZonesComponent,
     BanksComponent,
     BankPromosComponent,
+    BrandsComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -184,6 +187,19 @@ type MenuKey =
               <mat-icon matListItemIcon class="mr-3">credit_card</mat-icon>
               <div matListItemTitle>Promos bancarias</div>
             </a>
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'marcas'
+                  ? 'bg-indigo-500 text-white'
+                  : 'hover:bg-indigo-50'
+              "
+              (click)="setActive('marcas')"
+            >
+              <mat-icon matListItemIcon class="mr-3">inventory_2</mat-icon>
+              <div matListItemTitle>Marcas</div>
+            </a>
             } }
 
             <a
@@ -219,6 +235,8 @@ type MenuKey =
           <app-banks />
           }@case ('bancos_promociones') {
           <app-bank-promos />
+          }@case ('marcas') {
+          <app-brands />
           }@default {
           <div class="p-6 text-slate-600">Seleccioná una opción</div>
           } }
