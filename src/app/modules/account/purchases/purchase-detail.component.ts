@@ -20,7 +20,7 @@ import { PedidoDetail } from './purchases.model';
       <p class="text-slate-600">No hay detalle para este pedido.</p>
       } @else {
       <table class="min-w-full border border-slate-200 text-sm">
-        <thead class="bg-slate-800 text-white">
+        <thead class="bg-slate-800 text-black">
           <tr>
             <th class="px-4 py-2 text-left">Artículo</th>
             <th class="px-4 py-2 text-right">Precio</th>

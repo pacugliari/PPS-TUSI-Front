@@ -66,7 +66,7 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
         this.api.getPedidoDetalle(id).pipe(
           tapResponse({
             next: (res) => {
-              const detail = res.payload as PedidoDetail | null;
+              const detail = res.payload;
               this.patchState({ selected: detail, showDetail: !!detail });
 
               if (detail) {

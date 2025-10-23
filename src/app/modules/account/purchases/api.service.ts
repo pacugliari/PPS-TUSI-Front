@@ -21,42 +21,7 @@ export class PurchasesApiService {
   }
 
   getPedidoDetalle(id: number): Observable<ApiResponse<PedidoDetail>> {
-    return this.http.get<ApiResponse<any>>(`${this.baseUrl}/${id}`).pipe(
-      map((res) => ({ ...res, payload: PedidoDetail.adapt(res?.payload) })),
-      catchError(() =>
-        of({
-          statusCode: 200,
-          success: true,
-          message: 'Detalle mock',
-          payload: PedidoDetail.adapt({
-            idPedido: id,
-            items: [
-              {
-                articulo:
-                  'CPU Water Cooler 240mm Thermaltake TH240 V2 Ultra EX ARGB - LCD DISPLAY',
-                precio: '264208.00',
-                cantidad: 1,
-                subtotal: '264208.00',
-              },
-              {
-                articulo: 'Seguro Envío',
-                precio: '1325.16',
-                cantidad: 1,
-                subtotal: '1325.16',
-              },
-              {
-                articulo: 'Cargo Envío',
-                precio: '9583.88',
-                cantidad: 1,
-                subtotal: '9583.88',
-              },
-            ],
-            total: '275117.04',
-          }),
-          errors: [],
-        } as ApiResponse<PedidoDetail>)
-      )
-    );
+    return this.http.get<ApiResponse<PedidoDetail>>(`${this.baseUrl}/${id}`);
   }
 
   downloadFactura(id: number): Observable<Blob> {
