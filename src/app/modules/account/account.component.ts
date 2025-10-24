@@ -23,6 +23,7 @@ import { BankPromosComponent } from './bank-promos/bank-promos.component';
 import { BrandsComponent } from './brands/brands.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { FeaturesComponent } from './features/features.component';
+import { SubCategoriesComponent } from './subcategories/subcategories.component';
 
 type MenuKey =
   | 'datos'
@@ -36,7 +37,8 @@ type MenuKey =
   | 'bancos_promociones'
   | 'marcas'
   | 'categorias'
-  | 'caracteristicas';
+  | 'caracteristicas'
+  | 'subcategorias';
 
 @Component({
   selector: 'app-account',
@@ -59,6 +61,7 @@ type MenuKey =
     BrandsComponent,
     CategoriesComponent,
     FeaturesComponent,
+    SubCategoriesComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -232,6 +235,19 @@ type MenuKey =
               <mat-icon matListItemIcon class="mr-3">tune</mat-icon>
               <div matListItemTitle>Características</div>
             </a>
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'subcategorias'
+                  ? 'bg-indigo-500 text-white'
+                  : 'hover:bg-indigo-50'
+              "
+              (click)="setActive('subcategorias')"
+            >
+              <mat-icon matListItemIcon class="mr-3">subtitles</mat-icon>
+              <div matListItemTitle>Subcategorías</div>
+            </a>
             } }
 
             <a
@@ -273,6 +289,8 @@ type MenuKey =
           <app-categories />
           }@case ('caracteristicas') {
           <app-features />
+          }@case ('subcategorias') {
+          <app-subcategories />
           }@default {
           <div class="p-6 text-slate-600">Seleccioná una opción</div>
           } }
