@@ -80,10 +80,12 @@ export class PedidoDetail {
 
 export class PedidoDetailItem {
   constructor(
+    public idProducto: number,
     public articulo: string,
     public precio: number,
     public cantidad: number,
-    public subtotal: number
+    public subtotal: number,
+    public calificado: boolean
   ) {}
 
   static adapt(item: any): PedidoDetailItem {
@@ -91,6 +93,8 @@ export class PedidoDetailItem {
 
     const errors: string[] = [];
 
+    if (!item.calificado) errors.push('calificado');
+    if (!item.idProducto) errors.push('idProducto');
     if (!item.articulo) errors.push('articulo');
     if (item.precio == null) errors.push('precio');
     if (item.cantidad == null) errors.push('cantidad');
@@ -107,10 +111,12 @@ export class PedidoDetailItem {
       item.subtotal != null ? parseNum(item.subtotal) : precio * cantidad;
 
     return new PedidoDetailItem(
+      item.idProducto,
       String(item.articulo),
       precio,
       cantidad,
-      subtotal
+      subtotal,
+      Boolean(item.calificado)
     );
   }
 
@@ -123,4 +129,9 @@ export class PedidoDetailItem {
 function parseNum(value: any): number {
   const n = Number(value);
   return isNaN(n) ? 0 : n;
+}
+
+export interface ProductRatingDto {
+  puntuacion: number; // 1 a 5
+  comentario?: string; // opcional
 }

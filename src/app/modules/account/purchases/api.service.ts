@@ -3,7 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, map, catchError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../shared/models/api-response.model';
-import { PedidoDetail, PedidoSummary } from './purchases.model';
+import {
+  PedidoDetail,
+  PedidoSummary,
+  ProductRatingDto,
+} from './purchases.model';
 
 @Injectable({ providedIn: 'root' })
 export class PurchasesApiService {
@@ -35,5 +39,12 @@ export class PurchasesApiService {
           return of(blob);
         })
       );
+  }
+
+  rateProduct(idProducto: number, dto: ProductRatingDto): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(
+      `${this.baseUrl}/${idProducto}/rate`,
+      dto
+    );
   }
 }

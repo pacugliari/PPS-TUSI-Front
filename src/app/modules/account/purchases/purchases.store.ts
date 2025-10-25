@@ -6,7 +6,12 @@ import { ApiError } from '../../../shared/models/api-response.model';
 import { PurchasesApiService } from './api.service';
 import { MatDialog } from '@angular/material/dialog';
 import { PurchaseDetailComponent } from './purchase-detail.component';
-import { PedidoDetail, PedidoSummary } from './purchases.model';
+import {
+  PedidoDetail,
+  PedidoSummary,
+  ProductRatingDto,
+} from './purchases.model';
+import { AlertService } from '../../../shared/alert/alert.service';
 
 export interface PurchasesState {
   isLoading: boolean;
@@ -30,6 +35,7 @@ const initialState: PurchasesState = {
 export class PurchasesStore extends ComponentStore<PurchasesState> {
   private readonly api = inject(PurchasesApiService);
   private readonly dialog = inject(MatDialog);
+  private readonly alertService = inject(AlertService);
 
   constructor() {
     super(initialState);
@@ -62,28 +68,65 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
   readonly openDetail = this.effect<number>(($) =>
     $.pipe(
       tap(() => this.patchState({ isLoading: true, selected: null })),
-      exhaustMap((id) =>
-        this.api.getPedidoDetalle(id).pipe(
+      exhaustMap((idPedido) =>
+        this.api.getPedidoDetalle(idPedido).pipe(
           tapResponse({
             next: (res) => {
               const detail = res.payload;
               this.patchState({ selected: detail, showDetail: !!detail });
 
-              if (detail) {
-                const ref = this.dialog.open(PurchaseDetailComponent, {
-                  width: 'auto',
-                  data: detail,
-                });
+              if (!detail) return;
 
-                ref
-                  .afterClosed()
-                  .pipe(take(1))
-                  .subscribe(() => {
-                    this.patchState({ showDetail: false, selected: null });
-                  });
-              }
+              const ref = this.dialog.open(PurchaseDetailComponent, {
+                width: '60vw',
+                maxWidth: '900px',
+                maxHeight: '90vh',
+                data: detail,
+              });
+
+              ref
+                .afterClosed()
+                .pipe(take(1))
+                .subscribe((result) => {
+                  if (result) {
+                    const dto: ProductRatingDto = {
+                      puntuacion: Number(result.puntuacion),
+                      comentario: result.comentario ?? null,
+                    };
+                    this.submitRating({ idProducto: result.idProducto, dto });
+                  }
+                  this.patchState({ showDetail: false, selected: null });
+                });
             },
             error: (errors: ApiError) => this.patchState({ errors }),
+            finalize: () => this.patchState({ isLoading: false }),
+          })
+        )
+      )
+    )
+  );
+
+  readonly submitRating = this.effect<{
+    idProducto: number;
+    dto: ProductRatingDto;
+  }>((data$) =>
+    data$.pipe(
+      tap(() => this.patchState({ isLoading: true, errors: null })),
+      exhaustMap(({ idProducto, dto }) =>
+        this.api.rateProduct(idProducto, dto).pipe(
+          tapResponse({
+            next: (res) => {
+              this.alertService.showSuccess(
+                res.message ?? 'Calificación enviada'
+              );
+              this.loadPedidos();
+            },
+            error: (errors: ApiError) => {
+              this.alertService.showError(
+                errors.flatMap((e) => Object.values(e))
+              );
+              this.patchState({ errors });
+            },
             finalize: () => this.patchState({ isLoading: false }),
           })
         )
