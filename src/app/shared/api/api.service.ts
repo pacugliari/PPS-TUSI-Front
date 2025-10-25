@@ -12,20 +12,19 @@ import { Coupon } from '../models/coupon';
 export class SharedApiService {
   constructor(private http: HttpClient) {}
 
-  public getProducts(): Observable<ApiResponse<Producto[]>> {
-    return this.http.get<any>(environment.API_URL + 'productos');
+  public getProducts(ids: number[]): Observable<ApiResponse<Producto[]>> {
+    return this.http.post<ApiResponse<Producto[]>>(
+      environment.API_URL + 'cart/products',
+      { ids }
+    );
   }
 
-  validateCoupon(code: string): Observable<Coupon> {
-    return this.http
-      .post<ApiResponse<any>>(`${environment.API_URL}/coupons/validate`, {
+  validateCoupon(code: string): Observable<ApiResponse<Coupon>> {
+    return this.http.post<ApiResponse<Coupon>>(
+      `${environment.API_URL}cart/coupons/validate`,
+      {
         code,
-      })
-      .pipe(
-        map((res) => Coupon.adapt(res?.payload)),
-        catchError(() =>
-          of(new Coupon(code, code.toUpperCase() === 'BIENVENIDO10' ? 10 : 0))
-        )
-      );
+      }
+    );
   }
 }

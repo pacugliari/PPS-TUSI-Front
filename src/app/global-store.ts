@@ -8,6 +8,7 @@ import { Producto } from './shared/models/producto.model';
 import { SharedApiService } from './shared/api/api.service';
 import { Coupon } from './shared/models/coupon';
 import { AlertService } from './shared/alert/alert.service';
+import { ApiError } from './shared/models/api-response.model';
 
 interface RolGlobalState {
   idRol: number;
@@ -284,16 +285,11 @@ export class GlobalStore extends ComponentStore<GlobalState> {
         }
 
         const ids = persisted.map((p) => p.idProducto);
-        const idSet = new Set(ids);
 
-        return this.sharedApiService.getProducts().pipe(
+        return this.sharedApiService.getProducts(ids).pipe(
           tapResponse({
             next: (res) => {
-              const productos: Producto[] = (res?.payload ?? []).filter(
-                (p: Producto) => idSet.has(p.idProducto)
-              );
-
-              const byId = new Map(productos.map((p) => [p.idProducto, p]));
+              const byId = new Map(res.payload?.map((p) => [p.idProducto, p]));
 
               const cart: CartItem[] = persisted.map(
                 ({ idProducto, cantidad }) => {
@@ -367,27 +363,17 @@ export class GlobalStore extends ComponentStore<GlobalState> {
       switchMap((code) =>
         this.sharedApiService.validateCoupon(code).pipe(
           tapResponse({
-            next: (coupon) => {
-              if (coupon?.percent && coupon.percent > 0) {
-                this.setCoupon(coupon);
-                this.alertService.showSuccess(
-                  `Cupón aplicado: ${coupon.code ?? code} (-${
-                    coupon.percent
-                  }%).`
-                );
-              } else {
-                this.setCoupon(null);
-                this.alertService.showError([
-                  `El cupón "${code}" no es válido o no tiene descuento.`,
-                ]);
-              }
+            next: (res) => {
+              const coupon = res.payload;
+
+              this.setCoupon(coupon);
+              this.alertService.showSuccess(res.message);
             },
-            error: (err) => {
-              console.error(err);
-              this.setCoupon(null);
-              this.alertService.showError([
-                `No se pudo validar el cupón "${code}".`,
-              ]);
+            error: (errors: ApiError) => {
+              this.alertService.showError(
+                errors.flatMap((err) => Object.values(err))
+              );
+              this.patchState({ errors });
             },
             finalize: () => this.setIsApplyingCoupon(false),
           })
