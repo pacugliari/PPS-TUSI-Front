@@ -1,13 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import {
-  combineLatest,
-  filter,
-  map,
-  switchMap,
-  tap,
-  withLatestFrom,
-} from 'rxjs';
+import { combineLatest, filter, map, switchMap, tap, withLatestFrom } from 'rxjs';
 import { GlobalStore } from '../../global-store';
 import {
   CheckoutVM,
@@ -20,26 +13,20 @@ import {
 import { ApiService } from './api.service';
 
 interface CheckoutState {
-  // perfil + direcciones separadas
   profile: UserProfile | null;
   addresses: Direccion[];
   selectedAddressId: number | null;
 
-  // envío / pago
   metodoEnvio: MetodoEnvio;
   metodoPago: MetodoPago;
   costoEnvioDomicilio: number;
 
-  // pago online
   tarjetaSeleccionada: string | null;
   ultimos4: string;
   codigoValidacion: string;
 
-  // flags
-  profileLoaded: boolean;
-  isLoadingProfile: boolean;
-  addressesLoaded: boolean;
-  isLoadingAddresses: boolean;
+  optionsLoaded: boolean;
+  isLoadingOptions: boolean;
 }
 
 const initialState: CheckoutState = {
@@ -55,10 +42,8 @@ const initialState: CheckoutState = {
   ultimos4: '',
   codigoValidacion: '',
 
-  profileLoaded: false,
-  isLoadingProfile: false,
-  addressesLoaded: false,
-  isLoadingAddresses: false,
+  optionsLoaded: false,
+  isLoadingOptions: false,
 };
 
 @Injectable()
@@ -68,8 +53,7 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
 
   constructor() {
     super(initialState);
-    this.loadProfile();
-    this.loadDirecciones();
+    this.loadOptions();
   }
 
   // Selectores
@@ -85,123 +69,54 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
   readonly ultimos4$ = this.select((s) => s.ultimos4);
   readonly codigoValidacion$ = this.select((s) => s.codigoValidacion);
 
-  readonly profileLoaded$ = this.select((s) => s.profileLoaded);
-  readonly isLoadingProfile$ = this.select((s) => s.isLoadingProfile);
-  readonly addressesLoaded$ = this.select((s) => s.addressesLoaded);
-  readonly isLoadingAddresses$ = this.select((s) => s.isLoadingAddresses);
+  readonly optionsLoaded$ = this.select((s) => s.optionsLoaded);
+  readonly isLoadingOptions$ = this.select((s) => s.isLoadingOptions);
 
   // Updaters
-  readonly setMetodoEnvio = this.updater<MetodoEnvio>((s, v) => ({
-    ...s,
-    metodoEnvio: v,
-  }));
-  readonly setMetodoPago = this.updater<MetodoPago>((s, v) => ({
-    ...s,
-    metodoPago: v,
-  }));
+  readonly setMetodoEnvio = this.updater<MetodoEnvio>((s, v) => ({ ...s, metodoEnvio: v }));
+  readonly setMetodoPago = this.updater<MetodoPago>((s, v) => ({ ...s, metodoPago: v }));
+
   readonly setSelectedAddressId = this.updater<number | null>((s, id) => {
     const dir = id != null ? s.addresses.find((a) => a.id === id) : undefined;
     const costo = dir?.zona?.costoEnvio ?? s.costoEnvioDomicilio;
     return { ...s, selectedAddressId: id, costoEnvioDomicilio: costo };
   });
 
-  readonly setTarjetaSeleccionada = this.updater<string | null>((s, t) => ({
-    ...s,
-    tarjetaSeleccionada: t,
-  }));
-  readonly setUltimos4 = this.updater<string>((s, v) => ({
-    ...s,
-    ultimos4: v,
-  }));
-  readonly setCodigoValidacion = this.updater<string>((s, v) => ({
-    ...s,
-    codigoValidacion: v,
-  }));
+  readonly setTarjetaSeleccionada = this.updater<string | null>((s, t) => ({ ...s, tarjetaSeleccionada: t }));
+  readonly setUltimos4 = this.updater<string>((s, v) => ({ ...s, ultimos4: v }));
+  readonly setCodigoValidacion = this.updater<string>((s, v) => ({ ...s, codigoValidacion: v }));
+  readonly setCostoEnvioDomicilio = this.updater<number>((s, v) => ({ ...s, costoEnvioDomicilio: v }));
 
-  readonly setCostoEnvioDomicilio = this.updater<number>((s, v) => ({
-    ...s,
-    costoEnvioDomicilio: v,
-  }));
+  private readonly setProfile = this.updater<UserProfile | null>((s, p) => ({ ...s, profile: p }));
+  private readonly setAddresses = this.updater<Direccion[]>((s, list) => ({ ...s, addresses: list }));
+  private readonly setOptionsLoaded = this.updater<boolean>((s, v) => ({ ...s, optionsLoaded: v }));
+  private readonly setIsLoadingOptions = this.updater<boolean>((s, v) => ({ ...s, isLoadingOptions: v }));
 
-  private readonly setProfile = this.updater<UserProfile | null>((s, p) => ({
-    ...s,
-    profile: p,
-  }));
-  private readonly setProfileLoaded = this.updater<boolean>((s, v) => ({
-    ...s,
-    profileLoaded: v,
-  }));
-  private readonly setIsLoadingProfile = this.updater<boolean>((s, v) => ({
-    ...s,
-    isLoadingProfile: v,
-  }));
-
-  private readonly setAddresses = this.updater<Direccion[]>((s, list) => ({
-    ...s,
-    addresses: list,
-  }));
-  private readonly setAddressesLoaded = this.updater<boolean>((s, v) => ({
-    ...s,
-    addressesLoaded: v,
-  }));
-  private readonly setIsLoadingAddresses = this.updater<boolean>((s, v) => ({
-    ...s,
-    isLoadingAddresses: v,
-  }));
-
-  // Effects
-  readonly loadProfile = this.effect<void>(($) =>
+  // Effect: un solo request para perfil+direcciones
+  readonly loadOptions = this.effect<void>(($) =>
     $.pipe(
-      withLatestFrom(this.profileLoaded$),
+      withLatestFrom(this.optionsLoaded$),
       filter(([, loaded]) => !loaded),
-      tap(() => this.setIsLoadingProfile(true)),
+      tap(() => this.setIsLoadingOptions(true)),
       switchMap(() =>
-        this.api.getProfile().pipe(
+        this.api.getCheckoutOptions().pipe(
           tap({
-            next: (p) => {
-              this.setProfile(p);
-              this.setProfileLoaded(true);
-              this.setIsLoadingProfile(false);
-            },
-            error: () => {
-              this.setIsLoadingProfile(false);
-              this.setProfileLoaded(true);
-            },
-          })
-        )
-      )
-    )
-  );
+            next: ({ profile, direcciones }) => {
+              this.setProfile(profile);
+              this.setAddresses(direcciones);
+              this.setOptionsLoaded(true);
+              this.setIsLoadingOptions(false);
 
-  readonly loadDirecciones = this.effect<void>(($) =>
-    $.pipe(
-      withLatestFrom(this.addressesLoaded$),
-      filter(([, loaded]) => !loaded),
-      tap(() => this.setIsLoadingAddresses(true)),
-      switchMap(() =>
-        this.api.getDirecciones().pipe(
-          tap({
-            next: (dirs) => {
-              this.setAddresses(dirs);
-              this.setAddressesLoaded(true);
-              this.setIsLoadingAddresses(false);
+              // Selección inicial de dirección + costo de envío
+              const principalId = direcciones.find((d) => d.principal)?.id ?? direcciones[0]?.id ?? null;
+              if (this.get().selectedAddressId == null) this.setSelectedAddressId(principalId);
 
-              // seleccionar principal o primera
-              const principalId =
-                dirs.find((d) => d.principal)?.id ?? dirs[0]?.id ?? null;
-              if (this.get().selectedAddressId == null)
-                this.setSelectedAddressId(principalId);
-
-              // setear costo de envío inicial
-              const cost = this.findCostoEnvioByAddressId(
-                dirs,
-                this.get().selectedAddressId
-              );
+              const cost = this.findCostoEnvioByAddressId(direcciones, this.get().selectedAddressId);
               if (cost != null) this.setCostoEnvioDomicilio(cost);
             },
             error: () => {
-              this.setIsLoadingAddresses(false);
-              this.setAddressesLoaded(true);
+              this.setIsLoadingOptions(false);
+              this.setOptionsLoaded(true);
             },
           })
         )
@@ -209,14 +124,11 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
     )
   );
 
-  private findCostoEnvioByAddressId(
-    list: Direccion[] = [],
-    id: number | null | undefined
-  ): number | null {
+  private findCostoEnvioByAddressId(list: Direccion[] = [], id: number | null | undefined): number | null {
     if (!id) return null;
     const d = list.find((x) => x.id === id);
     return d?.zona?.costoEnvio ?? null;
-  }
+    }
 
   // VM con IVA
   readonly vm$ = combineLatest({
@@ -236,15 +148,12 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
     tarjetaSeleccionada: this.tarjetaSeleccionada$,
     ultimos4: this.ultimos4$,
     codigoValidacion: this.codigoValidacion$,
+    isLoading: this.isLoadingOptions$
   }).pipe(
     map((x) => {
       const descuento = x.percent > 0 ? (x.subtotal * x.percent) / 100 : 0;
       const total = Math.max(0, x.subtotal - descuento);
-      const totalConEnvio =
-        x.metodoEnvio === 'RETIRO'
-          ? total
-          : total + (x.costoEnvioDomicilio || 0);
-
+      const totalConEnvio = x.metodoEnvio === 'RETIRO' ? total : total + (Number(x.costoEnvioDomicilio) || 0);
       const iva = totalConEnvio * 0.21;
       const totalConIva = totalConEnvio + iva;
 
@@ -280,22 +189,13 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
   // Validaciones
   validoEnvio(): boolean {
     const { metodoEnvio, selectedAddressId, addresses } = this.get();
-    if (metodoEnvio === 'DOMICILIO') {
-      return !!selectedAddressId && addresses.length > 0;
-    }
-    return true; // RETIRO
+    if (metodoEnvio === 'DOMICILIO') return !!selectedAddressId && addresses.length > 0;
+    return true;
   }
 
   validoPago(): boolean {
-    const {
-      metodoPago,
-      tarjetaSeleccionada,
-      ultimos4,
-      codigoValidacion,
-      metodoEnvio,
-    } = this.get();
+    const { metodoPago, tarjetaSeleccionada, ultimos4, codigoValidacion, metodoEnvio } = this.get();
     if (metodoPago === 'EFECTIVO') return metodoEnvio === 'RETIRO';
-
     const cvvOk = /^\d{3}$/.test(codigoValidacion);
     const last4Ok = /^\d{4}$/.test(ultimos4);
     return !!tarjetaSeleccionada && cvvOk && last4Ok;
@@ -305,18 +205,10 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
     return this.validoEnvio() && this.validoPago() && total >= 0;
   }
 
-  // Confirmación
   confirmar(totalConIva: number) {
     if (!this.puedeConfirmar(totalConIva)) return;
 
-    const {
-      metodoEnvio,
-      metodoPago,
-      selectedAddressId,
-      tarjetaSeleccionada,
-      ultimos4,
-    } = this.get();
-
+    const { metodoEnvio, metodoPago, selectedAddressId, tarjetaSeleccionada, ultimos4 } = this.get();
     const payload: CheckoutPayload = {
       envio: metodoEnvio,
       direccionId: metodoEnvio === 'DOMICILIO' ? selectedAddressId : null,
@@ -325,7 +217,6 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
       ultimos4: metodoPago === 'ONLINE' ? ultimos4 : null,
       total: totalConIva,
     };
-
     this.api.submitOrder(payload);
   }
 }
