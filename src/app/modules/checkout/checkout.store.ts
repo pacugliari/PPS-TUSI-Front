@@ -154,7 +154,7 @@ export class CheckoutStore extends ComponentStore<CheckoutState> {
       const descuento = x.percent > 0 ? (x.subtotal * x.percent) / 100 : 0;
       const total = Math.max(0, x.subtotal - descuento);
       const totalConEnvio = x.metodoEnvio === 'RETIRO' ? total : total + (Number(x.costoEnvioDomicilio) || 0);
-      const iva = totalConEnvio * 0.21;
+      const iva = total * 0.21;
       const totalConIva = totalConEnvio + iva;
 
       const vm: CheckoutVM = {
