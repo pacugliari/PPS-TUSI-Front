@@ -5,7 +5,8 @@ export class Producto {
     public fotos: string[],
     public categoria: Categoria,
     public precio: number,
-    public precioAnterior: number | null
+    public precioAnterior: number | null,
+    public iva: number | null
   ) {}
 
   static adapt(item: any): Producto {
@@ -14,7 +15,8 @@ export class Producto {
       !item.nombre ||
       !item.fotos ||
       !item.categoria ||
-      !item.precio
+      !item.precio ||
+      !item.iva
     ) {
       throw new Error('Invalid product data');
     }
@@ -25,16 +27,14 @@ export class Producto {
       item.fotos,
       Categoria.adapt(item.categoria),
       parseFloat(item.precio),
-      item.precioAnterior !== null ? parseFloat(item.precioAnterior) : null
+      item.precioAnterior !== null ? parseFloat(item.precioAnterior) : null,
+      item.iva !== null ? parseFloat(item.iva) : null
     );
   }
 }
 
 export class Categoria {
-  constructor(
-    public idCategoria: number,
-    public nombre: string
-  ) {}
+  constructor(public idCategoria: number, public nombre: string) {}
 
   static adapt(item: any): Categoria {
     if (!item.idCategoria || !item.nombre) {

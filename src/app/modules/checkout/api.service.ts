@@ -1,54 +1,30 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ApiResponse } from '../../shared/models/api-response.model';
 import { CheckoutPayload, Direccion, UserProfile } from './checkout.model';
 import { environment } from '../../../environments/environment';
-
-type ApiProfileItem = {
-  idPerfil: number;
-  idUsuario: number;
-  nombre: string;
-  tipoDocumento: string;
-  dni: number;
-  telefono: string;
-  createdAt: string;
-  updatedAt: string;
-  usuario: { idUsuario: number; email: string };
-};
-
-type ApiDireccionItem = {
-  idDireccion: number;
-  idZona: number;
-  idUsuario: number;
-  direccion: string;
-  cp: string;
-  alias: string;
-  adicionales?: string;
-  principal: boolean;
-  createdAt: string;
-  updatedAt: string;
-  usuario: { idUsuario: number; email: string };
-  zona: {
-    idZona: number;
-    nombre: string;
-    ciudad: string;
-    provincia: string;
-    costoEnvio?: number;
-  };
-};
-
-type ApiCheckoutOptions = {
-  perfil: ApiProfileItem | null;
-  direcciones: ApiDireccionItem[];
-};
+import {
+  CheckoutOptions,
+  CardValidationResponse,
+  ValidateCardRequest,
+} from './checkout.types';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   constructor(private http: HttpClient) {}
 
-  submitOrder(payload: CheckoutPayload) {
-    console.log('[CheckoutService] submitOrder', payload);
+  submitOrder(payload: {
+    formaPago: 'efectivo' | 'electronico';
+    productos: { idProducto: number; cantidad: number }[];
+    idTarjeta?: number | null;
+    idDireccion?: number | null;
+    idCupon?: number | null;
+  }): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(
+      `${environment.API_URL}checkout/order`,
+      payload
+    );
   }
 
   getCheckoutOptions(): Observable<{
@@ -56,39 +32,54 @@ export class ApiService {
     direcciones: Direccion[];
   }> {
     return this.http
-      .get<ApiResponse<ApiCheckoutOptions>>(
+      .get<ApiResponse<CheckoutOptions>>(
         `${environment.API_URL}checkout/options`
       )
       .pipe(
         map((res) => {
-          const p = res?.payload?.perfil ?? null;
-          const d = res?.payload?.direcciones ?? [];
-
-          const profile: UserProfile | null = p
+          const adapted = CheckoutOptions.adapt(res?.payload);
+          const profile: UserProfile | null = adapted.perfil
             ? {
-                nombreCompleto: p.nombre ?? '',
-                email: p.usuario?.email ?? '',
-                telefono: p.telefono ?? '',
+                nombreCompleto: adapted.perfil.nombre,
+                email: adapted.perfil.email,
+                telefono: adapted.perfil.telefono,
               }
             : null;
 
-          const direcciones: Direccion[] = d.map((x) => ({
-            id: x.idDireccion,
-            etiqueta: x.alias ?? '',
-            calle: x.direccion ?? '',
-            cp: x.cp ?? '',
-            adicionales: x.adicionales ?? '',
-            principal: x.principal ?? false,
+          const direcciones: Direccion[] = adapted.direcciones.map((d) => ({
+            id: d.id,
+            etiqueta: d.alias ?? '',
+            calle: d.direccion,
+            cp: d.cp ?? '',
+            adicionales: d.adicionales ?? '',
+            localidad: d.localidad ?? '',
+            principal: d.principal,
             zona: {
-              id: x.zona?.idZona ?? x.idZona,
-              nombre: x.zona?.nombre ?? '',
-              ciudad: x.zona?.ciudad ?? '',
-              provincia: x.zona?.provincia ?? '',
-              costoEnvio: x.zona?.costoEnvio ?? 0,
+              id: d.zona.idZona,
+              nombre: d.zona.nombre,
+              ciudad: d.zona.ciudad,
+              provincia: d.zona.provincia,
+              costoEnvio: d.zona.costoEnvio,
             },
           }));
 
           return { profile, direcciones };
+        })
+      );
+  }
+
+  validateCard(
+    payload: ValidateCardRequest
+  ): Observable<ApiResponse<CardValidationResponse>> {
+    return this.http
+      .post<ApiResponse<any>>(
+        `${environment.API_URL}checkout/validate-card`,
+        payload
+      )
+      .pipe(
+        map((res) => {
+          const a = CardValidationResponse.adapt(res?.payload);
+          return { ...res, payload: a };
         })
       );
   }

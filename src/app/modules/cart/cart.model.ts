@@ -8,7 +8,8 @@ export class ProductInCart {
     public idProducto: number,
     public nombre: string,
     public precio: number,
-    public imagen: string | null
+    public imagen: string | null,
+    public iva: number | null
   ) {}
 
   static adapt(item: any): ProductInCart {
@@ -17,6 +18,7 @@ export class ProductInCart {
     if (item?.idProducto == null) missing.push('idProducto');
     if (!item?.nombre) missing.push('nombre');
     if (item?.precio == null) missing.push('precio');
+    if (item?.iva == null) missing.push('iva');
 
     if (missing.length) {
       throw new Error(`Invalid cart product: missing ${missing.join(', ')}`);
@@ -33,7 +35,8 @@ export class ProductInCart {
       isNaN(precio) ? 0 : precio,
       Array.isArray(item.fotos) && item.fotos.length
         ? String(item.fotos[0])
-        : item.imagen ?? null
+        : item.imagen ?? null,
+      item.iva ? parseFloat(item.iva) :  null
     );
   }
 

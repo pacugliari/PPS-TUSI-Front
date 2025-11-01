@@ -92,7 +92,7 @@ import { GlobalStore } from '../../global-store';
                     </tbody>
                   </table>
 
-                  <!-- CUPÓN: sólo si hay usuario logueado -->
+                  <!-- Cupón -->
                   <div class="flex flex-col lg:flex-row justify-between items-center gap-3 mt-6">
                     @if (user$ | async; as user) {
                       @if (vm.coupon) {
@@ -117,7 +117,6 @@ import { GlobalStore } from '../../global-store';
                         </div>
                       }
                     } @else {
-                      <!-- Invitado: aviso para loguearse -->
                       <div class="w-full text-center lg:text-left text-sm text-gray-600">
                         Iniciá sesión para aplicar un cupón.
                         <a routerLink="/register" class="text-primary font-semibold hover:underline">Ingresar</a>
@@ -142,25 +141,35 @@ import { GlobalStore } from '../../global-store';
 
                 <div class="flex justify-between mb-3">
                   <p>Subtotal</p>
-                  <p>{{ vm.totals.subtotal | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+                  <p>{{ vm.totals.subtotal | currency:'ARS':'symbol-narrow' }}</p>
                 </div>
 
                 <div class="flex justify-between mb-3" *ngIf="vm.totals.discount > 0">
                   <p>Descuento</p>
-                  <p>-{{ vm.totals.discount | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+                  <p>-{{ vm.totals.discount | currency:'ARS':'symbol-narrow' }}</p>
                 </div>
 
-                <div class="flex justify-between mb-3">
-                  <p>IVA (21%)</p>
-                  <p>{{ (vm.totals.total * 0.21) | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+                <div class="mb-3">
+                  <div class="flex justify-between" *ngFor="let iv of vm.totals.ivaItems">
+                    <p>IVA ({{ iv.rate }}%)</p>
+                    <p>{{ iv.amount | currency:'ARS':'symbol-narrow' }}</p>
+                  </div>
+                  <div class="flex justify-between font-medium mt-1">
+                    <p>IVA total</p>
+                    <p>{{ vm.totals.iva | currency:'ARS':'symbol-narrow' }}</p>
+                  </div>
                 </div>
 
                 <div class="flex justify-between items-center mb-2 border-t border-gray-100 pt-3">
                   <p class="font-semibold">Total</p>
-                  <p class="font-semibold">{{ (vm.totals.total * 1.21) | currency:'ARS':'symbol-narrow':'1.2-2' }}</p>
+                  <p class="font-semibold">
+                    {{
+                      (vm.totals.total + vm.totals.iva)
+                        | currency:'ARS':'symbol-narrow'
+                    }}
+                  </p>
                 </div>
 
-                <!-- Finalizar compra: sólo logueado -->
                 @if (user$ | async) {
                   <a routerLink="/checkout"
                      class="bg-primary text-white border hover:border-primary hover:bg-transparent hover:text-primary py-2 px-4 rounded-full mt-4 w-full text-center block">

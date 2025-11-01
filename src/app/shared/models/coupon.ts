@@ -1,9 +1,14 @@
 export class Coupon {
-  constructor(public code: string, public percent: number) {}
+  constructor(
+    public idCupon: number,
+    public code: string,
+    public percent: number
+  ) {}
 
   static adapt(item: any): Coupon {
     const missing: string[] = [];
     if (!item) missing.push('item');
+    if (!item?.idCupon) missing.push('idCupon');
     if (!item?.code) missing.push('code');
     if (item?.percent == null) missing.push('percent');
     if (missing.length) {
@@ -11,6 +16,10 @@ export class Coupon {
     }
 
     const p = Number(item.percent);
-    return new Coupon(String(item.code).trim(), isNaN(p) ? 0 : p);
+    return new Coupon(
+      Number(item.idCupon),
+      String(item.code).trim(),
+      isNaN(p) ? 0 : p
+    );
   }
 }

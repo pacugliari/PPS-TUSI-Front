@@ -37,6 +37,7 @@ export interface CartItem {
   precio: number;
   imagen: string | null;
   cantidad: number;
+  iva?: number | null;
 }
 
 interface GlobalState {
@@ -180,7 +181,7 @@ export class GlobalStore extends ComponentStore<GlobalState> {
   });
 
   readonly addToCart = this.updater<{
-    producto: Omit<Producto, 'categoria' | 'precioAnterior'>;
+    producto: Omit<Producto, 'categoria' | 'precioAnterior' | 'iva'>;
     cantidad?: number;
   }>((state, { producto, cantidad = 1 }) => {
     if (!this.cartEnabledFor(state.user)) return state;
@@ -198,12 +199,13 @@ export class GlobalStore extends ComponentStore<GlobalState> {
         nombre: producto.nombre,
         precio: producto.precio,
         imagen: producto.fotos?.[0] ?? null,
+        iva: null,
         cantidad,
       });
 
     const persisted = this.toPersisted(nextCart);
     this.setPerUser(LS_CART_NS, state.user, persisted);
-
+    this.hydrateCart(state.user)
     return { ...state, cart: nextCart };
   });
 
@@ -300,6 +302,7 @@ export class GlobalStore extends ComponentStore<GlobalState> {
                       nombre: prod.nombre,
                       precio: prod.precio,
                       imagen: prod.fotos?.[0] ?? null,
+                      iva: prod.iva,
                       cantidad,
                     };
                   }
@@ -308,6 +311,7 @@ export class GlobalStore extends ComponentStore<GlobalState> {
                     nombre: 'Producto no disponible',
                     precio: 0,
                     imagen: null,
+                    iva: null,
                     cantidad,
                   };
                 }

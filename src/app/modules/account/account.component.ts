@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -25,7 +26,8 @@ import { CategoriesComponent } from './categories/categories.component';
 import { FeaturesComponent } from './features/features.component';
 import { SubCategoriesComponent } from './subcategories/subcategories.component';
 import { ProductComponent } from '../product/product.component';
-import { ProductsComponent } from "./products/products.component";
+import { ProductsComponent } from './products/products.component';
+import { ActivatedRoute } from '@angular/router';
 
 type MenuKey =
   | 'datos'
@@ -65,8 +67,8 @@ type MenuKey =
     CategoriesComponent,
     FeaturesComponent,
     SubCategoriesComponent,
-    ProductsComponent
-],
+    ProductsComponent,
+  ],
   template: `
     @if (vm$ | async; as vm) {
     <div class="grid grid-cols-12 gap-6 p-3">
@@ -324,8 +326,23 @@ export class AccountComponent {
   protected rolTypes = RolType;
   protected readonly store = inject(GlobalStore);
   protected readonly vm$ = this.store.vm$;
+  protected readonly route = inject(ActivatedRoute);
 
   active = signal<MenuKey | null>(null);
+
+  constructor() {
+    effect(() => {
+      const tab = this.route.snapshot.queryParamMap.get('tab');
+      if (
+        tab &&
+        ['compras', 'datos', 'favoritos', 'direcciones', 'tarjetas'].includes(
+          tab
+        )
+      ) {
+        this.active.set(tab as MenuKey);
+      }
+    });
+  }
 
   setActive(k: MenuKey) {
     this.active.set(k);
