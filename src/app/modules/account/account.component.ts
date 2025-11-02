@@ -25,9 +25,9 @@ import { BrandsComponent } from './brands/brands.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { FeaturesComponent } from './features/features.component';
 import { SubCategoriesComponent } from './subcategories/subcategories.component';
-import { ProductComponent } from '../product/product.component';
 import { ProductsComponent } from './products/products.component';
 import { ActivatedRoute } from '@angular/router';
+import { OrdersComponent } from './orders/orders.component';
 
 type MenuKey =
   | 'datos'
@@ -43,7 +43,8 @@ type MenuKey =
   | 'categorias'
   | 'caracteristicas'
   | 'subcategorias'
-  | 'productos';
+  | 'productos'
+  | 'pedidos';
 
 @Component({
   selector: 'app-account',
@@ -68,6 +69,7 @@ type MenuKey =
     FeaturesComponent,
     SubCategoriesComponent,
     ProductsComponent,
+    OrdersComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -267,6 +269,34 @@ type MenuKey =
               <mat-icon matListItemIcon class="mr-3">inventory_2</mat-icon>
               <div matListItemTitle>Productos</div>
             </a>
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'pedidos'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('pedidos')"
+            >
+              <mat-icon matListItemIcon class="mr-3">receipt_long</mat-icon>
+              <div matListItemTitle>Pedidos</div>
+            </a>
+
+            } @case (rolTypes.DELIVERY){
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'pedidos'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('pedidos')"
+            >
+              <mat-icon matListItemIcon class="mr-3">receipt_long</mat-icon>
+              <div matListItemTitle>Pedidos</div>
+            </a>
             } }
 
             <a
@@ -312,7 +342,9 @@ type MenuKey =
           <app-subcategories />
           }@case ('productos') {
           <app-products />
-          }@default {
+          }@case ('pedidos') {
+          <app-orders />
+          } @default {
           <div class="p-6 text-slate-600">Seleccioná una opción</div>
           } }
         </div>

@@ -3,17 +3,13 @@ import { ComponentStore } from '@ngrx/component-store';
 import { exhaustMap, switchMap, take, tap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { ApiError } from '../../../shared/models/api-response.model';
-import { PurchasesApiService } from './api.service';
+import { OrdersApiService } from './api.service';
 import { MatDialog } from '@angular/material/dialog';
-import { PurchaseDetailComponent } from './purchase-detail.component';
-import {
-  PedidoDetail,
-  PedidoSummary,
-  ProductRatingDto,
-} from './purchases.model';
+import { PurchaseDetailComponent } from './orders-detail.component';
+import { PedidoDetail, PedidoSummary, ProductRatingDto } from './orders.model';
 import { AlertService } from '../../../shared/alert/alert.service';
 
-export interface PurchasesState {
+export interface OrdersState {
   isLoading: boolean;
   downloading: boolean;
   pedidos: PedidoSummary[];
@@ -22,7 +18,7 @@ export interface PurchasesState {
   errors: ApiError | null;
 }
 
-const initialState: PurchasesState = {
+const initialState: OrdersState = {
   isLoading: false,
   downloading: false,
   pedidos: [],
@@ -32,8 +28,8 @@ const initialState: PurchasesState = {
 };
 
 @Injectable()
-export class PurchasesStore extends ComponentStore<PurchasesState> {
-  private readonly api = inject(PurchasesApiService);
+export class OrdersStore extends ComponentStore<OrdersState> {
+  private readonly api = inject(OrdersApiService);
   private readonly dialog = inject(MatDialog);
   private readonly alertService = inject(AlertService);
 
@@ -88,13 +84,6 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
                 .afterClosed()
                 .pipe(take(1))
                 .subscribe((result) => {
-                  if (result) {
-                    const dto: ProductRatingDto = {
-                      puntuacion: Number(result.puntuacion),
-                      comentario: result.comentario ?? null,
-                    };
-                    this.submitRating({ idProducto: result.idProducto, dto });
-                  }
                   this.patchState({ showDetail: false, selected: null });
                 });
             },
@@ -106,27 +95,16 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
     )
   );
 
-  readonly submitRating = this.effect<{
-    idProducto: number;
-    dto: ProductRatingDto;
-  }>((data$) =>
-    data$.pipe(
-      tap(() => this.patchState({ isLoading: true, errors: null })),
-      exhaustMap(({ idProducto, dto }) =>
-        this.api.rateProduct(idProducto, dto).pipe(
+  readonly cancelarPedido = this.effect<number>((id$) =>
+    id$.pipe(
+      switchMap((id) =>
+        this.api.cancelarPedido(id).pipe(
           tapResponse({
             next: (res) => {
-              this.alertService.showSuccess(
-                res.message ?? 'Calificación enviada'
-              );
+              this.alertService.showSuccess(res.message);
               this.loadPedidos();
             },
-            error: (errors: ApiError) => {
-              this.alertService.showError(
-                errors.flatMap((e) => Object.values(e))
-              );
-              this.patchState({ errors });
-            },
+            error: (errors: ApiError) => this.patchState({ errors }),
             finalize: () => this.patchState({ isLoading: false }),
           })
         )
@@ -134,29 +112,27 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
     )
   );
 
-  readonly downloadInvoice = this.effect<number>(($) =>
-    $.pipe(
-      tap(() => this.patchState({ downloading: true })),
-      exhaustMap((id) =>
-        this.api.downloadFactura(id).pipe(
-          tap((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `factura-${id}.pdf`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }),
-          tap(() => this.patchState({ downloading: false }))
+  readonly marcarEnviado = this.effect<number>((id$) =>
+    id$.pipe(
+      switchMap((id) =>
+        this.api.marcarEnviado(id).pipe(
+          tapResponse({
+            next: (res) => {
+              this.alertService.showSuccess(res.message);
+              this.loadPedidos();
+            },
+            error: (errors: ApiError) => this.patchState({ errors }),
+            finalize: () => this.patchState({ isLoading: false }),
+          })
         )
       )
     )
   );
 
-  readonly cancelarPedido = this.effect<number>((id$) =>
+    readonly marcarEntregado = this.effect<number>((id$) =>
     id$.pipe(
       switchMap((id) =>
-        this.api.cancelarPedido(id).pipe(
+        this.api.marcarEntregado(id).pipe(
           tapResponse({
             next: (res) => {
               this.alertService.showSuccess(res.message);

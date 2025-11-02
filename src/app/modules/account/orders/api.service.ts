@@ -3,20 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of, map, catchError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiResponse } from '../../../shared/models/api-response.model';
-import {
-  PedidoDetail,
-  PedidoSummary,
-  ProductRatingDto,
-} from './purchases.model';
+import { PedidoDetail, PedidoSummary, ProductRatingDto } from './orders.model';
 
 @Injectable({ providedIn: 'root' })
-export class PurchasesApiService {
-  private readonly baseUrl = `${environment.API_URL}account/purchases`;
+export class OrdersApiService {
+  private readonly baseUrl = `${environment.API_URL}account/orders`;
 
   constructor(private http: HttpClient) {}
 
   getPedidos(): Observable<ApiResponse<PedidoSummary[]>> {
-    return this.http.get<ApiResponse<any>>(this.baseUrl).pipe(
+    return this.http.get<ApiResponse<PedidoSummary[]>>(this.baseUrl).pipe(
       map((res) => ({
         ...res,
         payload: PedidoSummary.adaptList(res?.payload ?? []),
@@ -28,32 +24,24 @@ export class PurchasesApiService {
     return this.http.get<ApiResponse<PedidoDetail>>(`${this.baseUrl}/${id}`);
   }
 
-  downloadFactura(id: number): Observable<Blob> {
-    return this.http
-      .get(`${this.baseUrl}/${id}/invoice`, { responseType: 'blob' })
-      .pipe(
-        catchError(() => {
-          const blob = new Blob([`Factura mock del pedido ${id}`], {
-            type: 'application/pdf',
-          });
-          return of(blob);
-        })
-      );
-  }
-
-  rateProduct(
-    idProducto: number,
-    dto: ProductRatingDto
-  ): Observable<ApiResponse<void>> {
-    return this.http.post<ApiResponse<void>>(
-      `${this.baseUrl}/${idProducto}/rate`,
-      dto
-    );
-  }
-
   cancelarPedido(id: number): Observable<ApiResponse<void>> {
     return this.http.post<ApiResponse<void>>(`${this.baseUrl}/cancel/${id}`, {
       to: 'cancelado',
     });
+  }
+
+  marcarEnviado(id: number): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(`${this.baseUrl}/sent/${id}`, {
+      to: 'enviado',
+    });
+  }
+
+  marcarEntregado(id: number): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(
+      `${this.baseUrl}/delivered/${id}`,
+      {
+        to: 'entregado',
+      }
+    );
   }
 }

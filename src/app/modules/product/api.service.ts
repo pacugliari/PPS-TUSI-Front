@@ -20,7 +20,7 @@ export class ProductApiService {
 
   getById(id: number) {
     return this.http
-      .get<ApiResponse<any>>(`${this.base}productos/${id}`)
+      .get<ApiResponse<any>>(`${this.base}shop/products/${id}`)
       .pipe(
         map((res) => {
           return {

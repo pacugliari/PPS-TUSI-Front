@@ -12,6 +12,6 @@ export class ApiService {
   constructor(private http: HttpClient) {}
 
   public getProducts(): Observable<ApiResponse<Producto[]>> {
-    return this.http.get<any>(environment.API_URL + 'productos');
+    return this.http.get<any>(environment.API_URL + 'shop/products');
   }
 }

@@ -1,42 +1,41 @@
+// orders.component.ts
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
-import { PurchasesStore } from './purchases.store';
-import { PedidoEstado } from './purchases.model';
+import { OrdersStore } from './orders.store';
+import { GlobalStore } from '../../../global-store';
+import { RolType } from '../../../shared/models/rol.model';
+import { PedidoEstado } from './orders.model';
 
 @Component({
-  selector: 'app-purchases',
+  selector: 'app-orders',
   standalone: true,
   imports: [CommonModule, MatButtonModule, MatDividerModule],
-  providers: [PurchasesStore],
+  providers: [OrdersStore],
   template: `
     <header class="text-center py-4">
-      <h2 class="text-xl font-semibold text-indigo-900">Mis Compras</h2>
+      <h2 class="text-xl font-semibold text-indigo-900">Pedidos</h2>
     </header>
     <mat-divider></mat-divider>
 
     @if (vm$ | async; as vm) {
     <div class="p-6 space-y-3">
       @if (vm.pedidos.length === 0) {
-      <div class="text-slate-600">No tenés pedidos registrados.</div>
+      <div class="text-slate-600">No hay pedidos registrados.</div>
       } @else { @for (p of vm.pedidos; track p.idPedido) {
-      <!-- Card -->
       <section
         class="bg-white border rounded-lg hover:border-indigo-300 hover:shadow-sm transition"
       >
-        <!-- GRID: info / monto / acciones -->
         <div
           class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 items-center p-4"
         >
-          <!-- Columna 1: datos del pedido -->
+          <!-- Info pedido + cliente -->
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <h3 class="font-semibold text-indigo-900 truncate">
                 Pedido #{{ p.idPedido }}
               </h3>
-
-              <!-- Estado chip -->
               <span
                 class="text-xs rounded-full px-2 py-0.5 border"
                 [ngClass]="{
@@ -52,12 +51,28 @@ import { PedidoEstado } from './purchases.model';
               >
                 {{ p.estado | titlecase }}
               </span>
-
-              <span class="text-xs text-slate-500"> — {{ p.fechaView }}</span>
+              <span class="text-xs text-slate-500">— {{ p.fechaView }}</span>
             </div>
+
+            @if (p.cliente) {
+            <div class="mt-2 text-xs text-slate-600 leading-5">
+              <div>
+                <span class="font-medium">Cliente:</span>
+                {{ p.cliente.nombre || '—' }}
+              </div>
+              <div class="truncate">
+                <span class="font-medium">Email:</span> {{ p.cliente.email }}
+              </div>
+              @if (p.cliente.telefono) {
+              <div>
+                <span class="font-medium">Tel:</span> {{ p.cliente.telefono }}
+              </div>
+              }
+            </div>
+            }
           </div>
 
-          <!-- Columna 2: monto + forma de pago -->
+          <!-- Monto + forma de pago -->
           <div class="text-right md:text-left">
             <div
               class="text-lg md:text-xl font-semibold text-slate-900 tabular-nums"
@@ -73,10 +88,20 @@ import { PedidoEstado } from './purchases.model';
             </div>
           </div>
 
-          <!-- Columna 3: acciones -->
+          <!-- Acciones -->
           <div class="flex md:justify-end gap-2">
-            <!-- Usuario: solo puede cancelar si está en 'reservado' -->
-            @if (canCancel(p.estado)) {
+            @if (user$ | async; as user) { @let rolUser = user?.role?.tipo!; @if
+            ([rolTypes.ADMINISTRADOR].includes(rolUser) ) {
+            @if(canShip(p.estado)){
+            <button
+              mat-stroked-button
+              color="accent"
+              class="whitespace-nowrap"
+              (click)="enviar(p.idPedido)"
+            >
+              Enviado
+            </button>
+            } @if(canCancel(p.estado)){
             <button
               mat-stroked-button
               color="warn"
@@ -85,16 +110,16 @@ import { PedidoEstado } from './purchases.model';
             >
               Cancelar
             </button>
-            }
-
+            } @if(canDelivered(p.estado)){
             <button
               mat-stroked-button
               color="primary"
-              (click)="descargarFactura(p.idPedido)"
-              [disabled]="vm.downloading"
+              class="whitespace-nowrap"
+              (click)="entregado(p.idPedido)"
             >
-              {{ vm.downloading ? 'Descargando…' : 'Descargar factura' }}
+              Entregado
             </button>
+            }
             <button
               mat-stroked-button
               color="primary"
@@ -103,6 +128,16 @@ import { PedidoEstado } from './purchases.model';
             >
               Ver detalle
             </button>
+            } @if ([rolTypes.DELIVERY].includes(rolUser) ) {
+            <button
+              mat-stroked-button
+              color="primary"
+              class="whitespace-nowrap"
+              (click)="entregado(p.idPedido)"
+            >
+              Entregado
+            </button>
+            }}
           </div>
         </div>
       </section>
@@ -112,9 +147,12 @@ import { PedidoEstado } from './purchases.model';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PedidosComponent {
-  private readonly store = inject(PurchasesStore);
+export class OrdersComponent {
+  private readonly store = inject(OrdersStore);
+  private readonly globalStore = inject(GlobalStore);
   readonly vm$ = this.store.vm$;
+  readonly user$ = this.globalStore.user$;
+  protected rolTypes = RolType;
 
   constructor() {
     this.store.loadPedidos();
@@ -128,11 +166,24 @@ export class PedidosComponent {
     this.store.cancelarPedido(id);
   }
 
-  canCancel(estado: PedidoEstado | null | undefined): boolean {
-    return String(estado ?? '').toLowerCase() === 'reservado';
+  enviar(id: number) {
+    this.store.marcarEnviado(id);
   }
 
-  descargarFactura(id: number) {
-    this.store.downloadInvoice(id);
+  entregado(id: number) {
+    this.store.marcarEntregado(id);
+  }
+
+  canCancel(estado: PedidoEstado | null | undefined): boolean {
+    const s = String(estado || '').toLowerCase();
+    return s === 'reservado' || s === 'pagado';
+  }
+
+  canShip(estado: PedidoEstado | null | undefined): boolean {
+    return String(estado || '').toLowerCase() === 'pagado';
+  }
+
+  canDelivered(estado: PedidoEstado | null | undefined): boolean {
+    return String(estado || '').toLowerCase() === 'reservado';
   }
 }
