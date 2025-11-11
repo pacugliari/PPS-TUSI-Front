@@ -28,6 +28,8 @@ import { SubCategoriesComponent } from './subcategories/subcategories.component'
 import { ProductsComponent } from './products/products.component';
 import { ActivatedRoute } from '@angular/router';
 import { OrdersComponent } from './orders/orders.component';
+import { ReturnsAdminComponent } from './returns/returns-admin/returns-admin.component';
+import { ReturnsComponent } from './returns/returns-user/returns-user.component';
 
 type MenuKey =
   | 'datos'
@@ -44,7 +46,8 @@ type MenuKey =
   | 'caracteristicas'
   | 'subcategorias'
   | 'productos'
-  | 'pedidos';
+  | 'pedidos'
+  | 'devoluciones';
 
 @Component({
   selector: 'app-account',
@@ -70,6 +73,8 @@ type MenuKey =
     SubCategoriesComponent,
     ProductsComponent,
     OrdersComponent,
+    ReturnsAdminComponent,
+    ReturnsComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -109,7 +114,19 @@ type MenuKey =
               <mat-icon matListItemIcon class="mr-3">receipt_long</mat-icon>
               <div matListItemTitle>Mis compras</div>
             </a>
-
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'devoluciones'
+                  ? 'bg-green-500 text-white'
+                  : 'hover:bg-green-50'
+              "
+              (click)="setActive('devoluciones')"
+            >
+              <mat-icon matListItemIcon class="mr-3">keyboard_return</mat-icon>
+              <div matListItemTitle>Mis devoluciones</div>
+            </a>
             <a
               mat-list-item
               class="!py-3"
@@ -283,6 +300,20 @@ type MenuKey =
               <div matListItemTitle>Pedidos</div>
             </a>
 
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'devoluciones'
+                  ? 'bg-indigo-500 text-white'
+                  : 'hover:bg-indigo-50'
+              "
+              (click)="setActive('devoluciones')"
+            >
+              <mat-icon matListItemIcon class="mr-3">keyboard_return</mat-icon>
+              <div matListItemTitle>Devoluciones</div>
+            </a>
+
             } @case (rolTypes.DELIVERY){
             <a
               mat-list-item
@@ -344,7 +375,12 @@ type MenuKey =
           <app-products />
           }@case ('pedidos') {
           <app-orders />
-          } @default {
+          }@case ('devoluciones') { @if (vm.user?.role?.tipo ===
+          rolTypes.USUARIO) {
+          <app-returns-user />
+          } @else if (vm.user?.role?.tipo === rolTypes.ADMINISTRADOR) {
+          <app-returns-admin />
+          } } @default {
           <div class="p-6 text-slate-600">Seleccioná una opción</div>
           } }
         </div>

@@ -89,11 +89,23 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
                 .pipe(take(1))
                 .subscribe((result) => {
                   if (result) {
-                    const dto: ProductRatingDto = {
-                      puntuacion: Number(result.puntuacion),
-                      comentario: result.comentario ?? null,
-                    };
-                    this.submitRating({ idProducto: result.idProducto, dto });
+                    if (result.puntuacion) {
+                      const dto: ProductRatingDto = {
+                        puntuacion: Number(result.puntuacion),
+                        comentario: result.comentario ?? null,
+                      };
+                      this.submitRating({ idProducto: result.idProducto, dto });
+                    } else if (result.motivo) {
+                      const dto = {
+                        motivo: result.motivo,
+                        comentario: result.comentario ?? null,
+                      };
+                      this.submitReturn({
+                        idPedido: result.idPedido,
+                        idProducto: result.idProducto,
+                        dto,
+                      });
+                    }
                   }
                   this.patchState({ showDetail: false, selected: null });
                 });
@@ -118,6 +130,35 @@ export class PurchasesStore extends ComponentStore<PurchasesState> {
             next: (res) => {
               this.alertService.showSuccess(
                 res.message ?? 'Calificación enviada'
+              );
+              this.loadPedidos();
+            },
+            error: (errors: ApiError) => {
+              this.alertService.showError(
+                errors.flatMap((e) => Object.values(e))
+              );
+              this.patchState({ errors });
+            },
+            finalize: () => this.patchState({ isLoading: false }),
+          })
+        )
+      )
+    )
+  );
+
+  readonly submitReturn = this.effect<{
+    idPedido: number;
+    idProducto: number;
+    dto: { motivo: string; comentario: string };
+  }>((data$) =>
+    data$.pipe(
+      tap(() => this.patchState({ isLoading: true, errors: null })),
+      exhaustMap(({ idPedido, idProducto, dto }) =>
+        this.api.devolverProducto(idPedido, idProducto, dto).pipe(
+          tapResponse({
+            next: (res) => {
+              this.alertService.showSuccess(
+                res.message ?? 'Devolución registrada'
               );
               this.loadPedidos();
             },

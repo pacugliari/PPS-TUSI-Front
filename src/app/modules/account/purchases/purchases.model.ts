@@ -78,6 +78,7 @@ export class PedidoDetail {
     public total: number,
     public porcentajeCupon: number,
     public porcentajeBanco: number,
+    public estado: PedidoEstado,
     public subtotalBruto?: number,
     public baseImponible?: number
   ) {}
@@ -109,6 +110,7 @@ export class PedidoDetail {
       parseNum(payload.total ?? 0),
       parseNum(payload.porcentajeCupon ?? 0),
       parseNum(payload.porcentajeBanco ?? 0),
+      String(payload.estado) as PedidoEstado,
       parseNum(payload.subtotalBruto ?? 0),
       parseNum(payload.baseImponible ?? 0)
     );
@@ -123,6 +125,7 @@ export class PedidoDetailItem {
     public cantidad: number,
     public subtotal: number,
     public calificado: boolean,
+    public enDevolucion: boolean,
     public iva: number
   ) {}
 
@@ -154,6 +157,7 @@ export class PedidoDetailItem {
       cantidad,
       subtotal,
       Boolean(item.calificado ?? false),
+      Boolean(item.enDevolucion ?? false),
       Number(item.iva ?? 0)
     );
   }

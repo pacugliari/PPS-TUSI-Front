@@ -56,4 +56,15 @@ export class PurchasesApiService {
       to: 'cancelado',
     });
   }
+
+  devolverProducto(
+    idPedido: number,
+    idProducto: number,
+    dto: { motivo: string; comentario: string }
+  ): Observable<ApiResponse<void>> {
+    return this.http.post<ApiResponse<void>>(
+      `${this.baseUrl}/${idPedido}/returns/${idProducto}`,
+      dto
+    );
+  }
 }
