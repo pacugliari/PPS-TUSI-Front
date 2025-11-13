@@ -33,7 +33,26 @@ export class CarouselPrincipal {
 export interface CarouselPrincipalUpsertDto {
   titulo?: string | null;
   descripcion?: string | null;
-  imagenUrl: string;
+  imagenUrl: string | null;
   link?: string | null;
   orden?: number | null;
+}
+
+export function dtoToFormData(
+  dto: CarouselPrincipalUpsertDto,
+  file?: File | null
+): FormData {
+  const fd = new FormData();
+
+  Object.entries(dto).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      fd.append(key, String(value));
+    }
+  });
+
+  if (file) {
+    fd.append('foto', file);
+  }
+
+  return fd;
 }

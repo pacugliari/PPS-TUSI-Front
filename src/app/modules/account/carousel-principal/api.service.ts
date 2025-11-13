@@ -6,6 +6,7 @@ import { ApiResponse } from '../../../shared/models/api-response.model';
 import {
   CarouselPrincipal,
   CarouselPrincipalUpsertDto,
+  dtoToFormData,
 } from './carousel-principal.model';
 
 @Injectable({ providedIn: 'root' })
@@ -15,19 +16,37 @@ export class CarouselPrincipalApiService {
 
   list() {
     return this.http
-      .get<ApiResponse<any[]>>(this.baseUrl)
+      .get<ApiResponse<CarouselPrincipal[]>>(this.baseUrl)
       .pipe(map((r) => CarouselPrincipal.adaptList(r.payload ?? [])));
   }
 
-  create(dto: CarouselPrincipalUpsertDto) {
-    return this.http.post<ApiResponse<any>>(this.baseUrl, dto);
+  create(dto: CarouselPrincipalUpsertDto & { file?: File | null }) {
+    if (dto.file instanceof File) {
+      const fd = dtoToFormData(dto, dto.file);
+      return this.http.post<ApiResponse<CarouselPrincipal>>(this.baseUrl, fd);
+    }
+
+    const { file, ...body } = dto;
+    return this.http.post<ApiResponse<CarouselPrincipal>>(this.baseUrl, body);
   }
 
-  update(id: number, dto: CarouselPrincipalUpsertDto) {
-    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/${id}`, dto);
+  update(id: number, dto: CarouselPrincipalUpsertDto & { file?: File | null }) {
+    if (dto.file instanceof File) {
+      const fd = dtoToFormData(dto, dto.file);
+      return this.http.put<ApiResponse<CarouselPrincipal>>(
+        `${this.baseUrl}/${id}`,
+        fd
+      );
+    }
+
+    const { file, ...body } = dto;
+    return this.http.put<ApiResponse<CarouselPrincipal>>(
+      `${this.baseUrl}/${id}`,
+      body
+    );
   }
 
   delete(id: number) {
-    return this.http.delete<ApiResponse<any>>(`${this.baseUrl}/${id}`);
+    return this.http.delete<ApiResponse<void>>(`${this.baseUrl}/${id}`);
   }
 }

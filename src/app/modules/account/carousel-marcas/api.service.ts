@@ -17,11 +17,17 @@ export class CarouselMarcasApiService {
   }
 
   create(dto: CarouselMarcaUpsertDto) {
-    return this.http.post<ApiResponse<any>>(this.baseUrl, dto);
+    return this.http.post<ApiResponse<any>>(
+      this.baseUrl,
+      CarouselMarca.adaptDtoToFormData(dto)
+    );
   }
 
   update(id: number, dto: CarouselMarcaUpsertDto) {
-    return this.http.put<ApiResponse<any>>(`${this.baseUrl}/${id}`, dto);
+    return this.http.put<ApiResponse<any>>(
+      `${this.baseUrl}/${id}`,
+      CarouselMarca.adaptDtoToFormData(dto)
+    );
   }
 
   delete(id: number) {

@@ -4,24 +4,23 @@ import {
   CarouselPrincipal,
   CarouselPrincipalUpsertDto,
 } from './carousel-principal.model';
-import { CarouselPrincipalApiService } from './api.service';
+
 import { MatDialog } from '@angular/material/dialog';
 import { CarouselPrincipalDialogComponent } from './carousel-principal-dialog.component';
 import { tap, switchMap, filter, exhaustMap } from 'rxjs';
 import { tapResponse } from '@ngrx/operators';
 import { AlertService } from '../../../shared/alert/alert.service';
 import { ApiError } from '../../../shared/models/api-response.model';
+import { CarouselPrincipalApiService } from './api.service';
 
 export interface CarouselPrincipalState {
   isLoading: boolean;
-  isSubmitting: boolean;
   slides: CarouselPrincipal[];
   errors: ApiError | null;
 }
 
 const initialState: CarouselPrincipalState = {
   isLoading: false,
-  isSubmitting: false,
   slides: [],
   errors: null,
 };
@@ -42,9 +41,6 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
     this.load();
   }
 
-  // ==========================
-  // LOAD
-  // ==========================
   readonly load = this.effect<void>((o$) =>
     o$.pipe(
       tap(() => this.patchState({ isLoading: true, errors: null })),
@@ -60,9 +56,6 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
     )
   );
 
-  // ==========================
-  // CREATE
-  // ==========================
   readonly openCreate = this.effect<void>((o$) =>
     o$.pipe(
       switchMap(() =>
@@ -73,8 +66,11 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
           })
           .afterClosed()
       ),
-      filter((dto): dto is CarouselPrincipalUpsertDto => !!dto),
-      tap(() => this.patchState({ isSubmitting: true, errors: null })),
+      filter(
+        (dto): dto is CarouselPrincipalUpsertDto & { file?: File | null } =>
+          !!dto
+      ),
+      tap(() => this.patchState({ isLoading: true, errors: null })),
       exhaustMap((dto) =>
         this.api.create(dto).pipe(
           tapResponse({
@@ -88,16 +84,13 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
               );
               this.patchState({ errors });
             },
-            finalize: () => this.patchState({ isSubmitting: false }),
+            finalize: () => this.patchState({ isLoading: false }),
           })
         )
       )
     )
   );
 
-  // ==========================
-  // EDIT
-  // ==========================
   readonly openEdit = this.effect<CarouselPrincipal>((slide$) =>
     slide$.pipe(
       switchMap((slide) =>
@@ -108,7 +101,10 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
           })
           .afterClosed()
           .pipe(
-            filter((dto): dto is CarouselPrincipalUpsertDto => !!dto),
+            filter(
+              (dto): dto is CarouselPrincipalUpsertDto & { file?: File | null } =>
+                !!dto
+            ),
             tap((dto) =>
               this.update({
                 id: slide.idCarruselPrincipal,
@@ -120,39 +116,35 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
     )
   );
 
-  // ==========================
-  // UPDATE
-  // ==========================
-  readonly update = this.effect<{ id: number; dto: CarouselPrincipalUpsertDto }>(
-    (in$) =>
-      in$.pipe(
-        tap(() => this.patchState({ isSubmitting: true, errors: null })),
-        exhaustMap(({ id, dto }) =>
-          this.api.update(id, dto).pipe(
-            tapResponse({
-              next: (response) => {
-                this.alertService.showSuccess(response.message);
-                this.load();
-              },
-              error: (errors: ApiError) => {
-                this.alertService.showError(
-                  errors.flatMap((e) => Object.values(e))
-                );
-                this.patchState({ errors });
-              },
-              finalize: () => this.patchState({ isSubmitting: false }),
-            })
-          )
+  readonly update = this.effect<{
+    id: number;
+    dto: CarouselPrincipalUpsertDto & { file?: File | null };
+  }>((in$) =>
+    in$.pipe(
+      tap(() => this.patchState({ isLoading: true, errors: null })),
+      exhaustMap(({ id, dto }) =>
+        this.api.update(id, dto).pipe(
+          tapResponse({
+            next: (response) => {
+              this.alertService.showSuccess(response.message);
+              this.load();
+            },
+            error: (errors: ApiError) => {
+              this.alertService.showError(
+                errors.flatMap((e) => Object.values(e))
+              );
+              this.patchState({ errors });
+            },
+            finalize: () => this.patchState({ isLoading: false }),
+          })
         )
       )
+    )
   );
 
-  // ==========================
-  // DELETE
-  // ==========================
   readonly remove = this.effect<number>((id$) =>
     id$.pipe(
-      tap(() => this.patchState({ isSubmitting: true, errors: null })),
+      tap(() => this.patchState({ isLoading: true, errors: null })),
       exhaustMap((id) =>
         this.api.delete(id).pipe(
           tapResponse({
@@ -166,7 +158,7 @@ export class CarouselPrincipalStore extends ComponentStore<CarouselPrincipalStat
               );
               this.patchState({ errors });
             },
-            finalize: () => this.patchState({ isSubmitting: false }),
+            finalize: () => this.patchState({ isLoading: false }),
           })
         )
       )

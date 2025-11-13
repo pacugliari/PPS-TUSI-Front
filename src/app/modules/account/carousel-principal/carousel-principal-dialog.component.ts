@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, Inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
   MatDialogModule,
@@ -9,28 +9,19 @@ import {
 } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+
 import {
   CarouselPrincipal,
   CarouselPrincipalUpsertDto,
 } from './carousel-principal.model';
 import { routes } from '../../../app.routes';
-import { MatSelectModule } from '@angular/material/select';
+import { selectableRoutes } from './carousel-principal.util';
 
 interface CarouselPrincipalDialogData {
   mode: 'create' | 'edit';
   slide?: CarouselPrincipal;
 }
-
-const selectableRoutes = routes
-  .filter(
-    (r) =>
-      r.path !== '**' && // No incluir not-found
-      !r.path?.includes(':') // No incluir rutas con parámetros
-  )
-  .map((r) => ({
-    path: '/' + r.path, // Asegura formato "/shop"
-    title: r.title ?? r.path, // Usa title si existe
-  }));
 
 @Component({
   selector: 'app-carousel-principal-dialog',
@@ -51,22 +42,35 @@ const selectableRoutes = routes
 
     <div class="pt-2 p-5">
       <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Imagen -->
+        <!-- URL SOLO LECTURA -->
         <mat-form-field appearance="outline" class="w-full md:col-span-2">
-          <mat-label>Imagen URL</mat-label>
-          <input matInput formControlName="imagenUrl" />
-          <mat-error *ngIf="form.controls.imagenUrl.hasError('required')">
-            La imagen es obligatoria
-          </mat-error>
+          <mat-label>Imagen actual</mat-label>
+          <input matInput formControlName="imagenUrl" readonly />
         </mat-form-field>
 
-        <!-- Título -->
+        <!-- ARCHIVO -->
+        <input
+          type="file"
+          accept="image/*"
+          class="md:col-span-2"
+          (change)="onFileSelected($event)"
+        />
+
+        <!-- PREVIEW -->
+        @if (previewUrl) {
+        <div class="md:col-span-2">
+          <img
+            [src]="previewUrl"
+            class="w-full max-h-64 object-contain border rounded-md"
+          />
+        </div>
+        }
+
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Título</mat-label>
           <input matInput formControlName="titulo" />
         </mat-form-field>
 
-        <!-- Link (select dinámico) -->
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Ruta del botón</mat-label>
           <mat-select formControlName="link">
@@ -76,14 +80,12 @@ const selectableRoutes = routes
           </mat-select>
         </mat-form-field>
 
-        <!-- Descripción -->
         <mat-form-field appearance="outline" class="w-full md:col-span-2">
           <mat-label>Descripción</mat-label>
           <textarea matInput rows="3" formControlName="descripcion"></textarea>
         </mat-form-field>
 
-        <!-- Orden -->
-        <mat-form-field appearance="outline" class="w-full md:col-span-1">
+        <mat-form-field appearance="outline" class="w-full">
           <mat-label>Orden</mat-label>
           <input type="number" matInput formControlName="orden" />
         </mat-form-field>
@@ -110,12 +112,15 @@ export class CarouselPrincipalDialogComponent {
 
   protected readonly routes = selectableRoutes;
 
+  selectedFile: File | null = null;
+  previewUrl: string | null = null;
+
   form = this.fb.group({
-    imagenUrl: ['', Validators.required],
+    imagenUrl: [{ value: '', disabled: true }],
     titulo: [''],
     descripcion: [''],
     link: [''],
-    orden: [undefined as number | undefined],
+    orden: [null as number | null],
   });
 
   constructor(
@@ -130,7 +135,39 @@ export class CarouselPrincipalDialogComponent {
         link: data.slide.link,
         orden: data.slide.orden,
       });
+
+      this.previewUrl =
+        data.slide.imagenUrl || 'assets/images/main-slider/place_holder.png';
+    } else {
+      this.previewUrl = 'assets/images/main-slider/place_holder.png';
     }
+  }
+
+  onFileSelected(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+
+    if (!file) {
+      this.previewUrl =
+        this.data.mode === 'edit'
+          ? this.data.slide?.imagenUrl ||
+            'assets/images/main-slider/place_holder.png'
+          : 'assets/images/main-slider/place_holder.png';
+
+      return;
+    }
+
+    this.selectedFile = file;
+
+    if (this.previewUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(this.previewUrl);
+    }
+
+    this.previewUrl = URL.createObjectURL(file);
+
+    this.form.patchValue({ imagenUrl: '' });
+
+    input.value = '';
   }
 
   close() {
@@ -139,6 +176,18 @@ export class CarouselPrincipalDialogComponent {
 
   submit() {
     if (this.form.invalid) return;
-    this.ref.close(this.form.getRawValue() as CarouselPrincipalUpsertDto);
+
+    const raw = this.form.getRawValue();
+
+    const dto: CarouselPrincipalUpsertDto & { file?: File | null } = {
+      titulo: raw.titulo ?? null,
+      descripcion: raw.descripcion ?? null,
+      link: raw.link ?? null,
+      orden: raw.orden ?? null,
+      imagenUrl: this.selectedFile ? null : this.data.slide?.imagenUrl ?? null,
+      file: this.selectedFile,
+    };
+
+    this.ref.close(dto);
   }
 }

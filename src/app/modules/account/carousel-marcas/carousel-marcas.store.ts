@@ -11,14 +11,12 @@ import { ApiError } from '../../../shared/models/api-response.model';
 
 export interface CarouselMarcasState {
   isLoading: boolean;
-  isSubmitting: boolean;
   marcas: CarouselMarca[];
   errors: ApiError | null;
 }
 
 const initialState: CarouselMarcasState = {
   isLoading: false,
-  isSubmitting: false,
   marcas: [],
   errors: null,
 };
@@ -46,8 +44,12 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
         this.api.list().pipe(
           tapResponse({
             next: (marcas) => this.patchState({ marcas, isLoading: false }),
-            error: (errors: ApiError) =>
-              this.patchState({ errors, isLoading: false }),
+            error: (errors: ApiError) => {
+              this.alertService.showError(
+                errors.flatMap((e) => Object.values(e))
+              );
+              this.patchState({ errors, isLoading: false });
+            },
           })
         )
       )
@@ -65,7 +67,7 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
           .afterClosed()
       ),
       filter((dto): dto is CarouselMarcaUpsertDto => !!dto),
-      tap(() => this.patchState({ isSubmitting: true })),
+      tap(() => this.patchState({ isLoading: true })),
       exhaustMap((dto) =>
         this.api.create(dto).pipe(
           tapResponse({
@@ -79,7 +81,7 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
               );
               this.patchState({ errors });
             },
-            finalize: () => this.patchState({ isSubmitting: false }),
+            finalize: () => this.patchState({ isLoading: false }),
           })
         )
       )
@@ -106,7 +108,7 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
   readonly update = this.effect<{ id: number; dto: CarouselMarcaUpsertDto }>(
     (in$) =>
       in$.pipe(
-        tap(() => this.patchState({ isSubmitting: true })),
+        tap(() => this.patchState({ isLoading: true })),
         exhaustMap(({ id, dto }) =>
           this.api.update(id, dto).pipe(
             tapResponse({
@@ -120,7 +122,7 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
                 );
                 this.patchState({ errors });
               },
-              finalize: () => this.patchState({ isSubmitting: false }),
+              finalize: () => this.patchState({ isLoading: false }),
             })
           )
         )
@@ -129,7 +131,7 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
 
   readonly remove = this.effect<number>((id$) =>
     id$.pipe(
-      tap(() => this.patchState({ isSubmitting: true })),
+      tap(() => this.patchState({ isLoading: true })),
       exhaustMap((id) =>
         this.api.delete(id).pipe(
           tapResponse({
@@ -143,7 +145,7 @@ export class CarouselMarcasStore extends ComponentStore<CarouselMarcasState> {
               );
               this.patchState({ errors });
             },
-            finalize: () => this.patchState({ isSubmitting: false }),
+            finalize: () => this.patchState({ isLoading: false }),
           })
         )
       )

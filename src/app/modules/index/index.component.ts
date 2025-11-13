@@ -45,7 +45,9 @@ import { toSignal } from '@angular/core/rxjs-interop';
         <swiper-slide>
           <div class="relative w-full h-full">
             <img
-              [src]="slide.imagenUrl"
+              [src]="
+                slide.imagenUrl || 'assets/images/main-slider/place_holder.png'
+              "
               class="w-full h-full object-cover"
               [alt]="slide.titulo"
               loading="eager"
@@ -308,14 +310,24 @@ import { toSignal } from '@angular/core/rxjs-interop';
           <swiper-slide>
             <div
               class="w-[120px] sm:w-[140px] lg:w-[160px]
-                         h-[80px] sm:h-[90px] lg:h-[100px]
-                         mx-auto flex items-center justify-center"
+             mx-auto flex flex-col items-center justify-center"
             >
-              <img
-                [src]="brand.logoUrl"
-                [alt]="brand.nombre"
-                class="max-h-full max-w-full object-contain"
-              />
+              <div
+                class="h-[80px] sm:h-[90px] lg:h-[100px]
+               flex items-center justify-center"
+              >
+                <img
+                  [src]="
+                    brand.logoUrl || 'assets/images/brands/place_holder.png'
+                  "
+                  [alt]="brand.nombre"
+                  class="max-h-full max-w-full object-contain"
+                />
+              </div>
+
+              <span class="mt-2 text-xs sm:text-sm text-gray-700 text-center">
+                {{ brand.nombre }}
+              </span>
             </div>
           </swiper-slide>
           }
