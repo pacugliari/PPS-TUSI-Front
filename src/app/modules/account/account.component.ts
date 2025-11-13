@@ -30,6 +30,8 @@ import { ActivatedRoute } from '@angular/router';
 import { OrdersComponent } from './orders/orders.component';
 import { ReturnsAdminComponent } from './returns/returns-admin/returns-admin.component';
 import { ReturnsComponent } from './returns/returns-user/returns-user.component';
+import { CarouselPrincipalComponent } from './carousel-principal/carousel-principal.component';
+import { CarouselMarcasComponent } from './carousel-marcas/carousel-marcas.component';
 
 type MenuKey =
   | 'datos'
@@ -47,7 +49,9 @@ type MenuKey =
   | 'subcategorias'
   | 'productos'
   | 'pedidos'
-  | 'devoluciones';
+  | 'devoluciones'
+  | 'carrusel_principal'
+  | 'carrusel_marcas';
 
 @Component({
   selector: 'app-account',
@@ -75,6 +79,8 @@ type MenuKey =
     OrdersComponent,
     ReturnsAdminComponent,
     ReturnsComponent,
+    CarouselPrincipalComponent,
+    CarouselMarcasComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -314,6 +320,34 @@ type MenuKey =
               <div matListItemTitle>Devoluciones</div>
             </a>
 
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'carrusel_principal'
+                  ? 'bg-indigo-500 text-white'
+                  : 'hover:bg-indigo-50'
+              "
+              (click)="setActive('carrusel_principal')"
+            >
+              <mat-icon matListItemIcon class="mr-3">image</mat-icon>
+              <div matListItemTitle>Carrusel principal</div>
+            </a>
+
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'carrusel_marcas'
+                  ? 'bg-indigo-500 text-white'
+                  : 'hover:bg-indigo-50'
+              "
+              (click)="setActive('carrusel_marcas')"
+            >
+              <mat-icon matListItemIcon class="mr-3">sell</mat-icon>
+              <div matListItemTitle>Carrusel de marcas</div>
+            </a>
+
             } @case (rolTypes.DELIVERY){
             <a
               mat-list-item
@@ -375,8 +409,9 @@ type MenuKey =
           <app-products />
           }@case ('pedidos') {
           <app-orders />
-          }@case ('devoluciones') { @if (vm.user?.role?.tipo ===
-          rolTypes.USUARIO) {
+          }@case('carrusel_principal') { <app-carousel-principal /> }
+          @case('carrusel_marcas') { <app-carousel-marcas /> }@case
+          ('devoluciones') { @if (vm.user?.role?.tipo === rolTypes.USUARIO) {
           <app-returns-user />
           } @else if (vm.user?.role?.tipo === rolTypes.ADMINISTRADOR) {
           <app-returns-admin />

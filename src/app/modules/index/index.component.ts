@@ -1,232 +1,102 @@
 import { CommonModule } from '@angular/common';
-import { Component, CUSTOM_ELEMENTS_SCHEMA, inject } from '@angular/core';
+import {
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  effect,
+  ElementRef,
+  inject,
+  ViewChild,
+} from '@angular/core';
 import { Store } from './index.store';
 import { SpinnerComponent } from '../../shared/spinner/spinner.component';
 import { GlobalStore } from '../../global-store';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-layout',
+  standalone: true,
   imports: [CommonModule, SpinnerComponent, RouterLink, MatIconModule],
   providers: [Store],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   styles: `
-   .brands-swiper-slider .swiper-button-prev, .brands-swiper-slider .swiper-button-next {
-    color: #ff0042 !important;
-   }
+    .brands-swiper-slider .swiper-button-prev,
+    .brands-swiper-slider .swiper-button-next {
+      color: #ff0042 !important;
+    }
   `,
   template: `
-    @if(vm$ | async; as vm){ @if(vm.isLoading){
+    @if (vm$ | async; as vm) { @if (vm.isLoading) {
     <app-spinner />
-    }
-    <!-- Slider -->
+    } @if (vm.slides?.length! > 0) {
     <section id="product-slider" class="relative">
       <swiper-container
-        loop="true"
+        #mainSwiper
         pagination="true"
-        navigation-prev-el=".swiper-button-prev"
-        navigation-next-el=".swiper-button-next"
+        navigation-prev-el=".swiper-button-prev-main"
+        navigation-next-el=".swiper-button-next-main"
         autoplay-delay="4000"
         autoplay-disable-on-interaction="false"
         class="[--swiper-navigation-color:#fff] [--swiper-pagination-color:#fff]"
         style="width:100%;height:70vh;display:block"
       >
-        <!-- Slide 1 -->
+        @for (slide of vm.slides; track slide.idCarruselPrincipal) {
         <swiper-slide>
           <div class="relative w-full h-full">
             <img
-              src="assets/images/main-slider/2.png"
-              alt="Slide 1"
+              [src]="slide.imagenUrl"
               class="w-full h-full object-cover"
+              [alt]="slide.titulo"
               loading="eager"
             />
             <div
-              class="swiper-slide-content absolute inset-0 flex items-end justify-start text-left p-6 md:p-12"
+              class="absolute inset-0 flex items-end justify-start text-left p-6 md:p-12"
             >
               <div class="max-w-xl pb-10 md:pb-16">
                 <h2
                   class="text-3xl md:text-7xl font-bold text-white mb-3 md:mb-4"
                 >
-                  Notebooks para todo
+                  {{ slide.titulo }}
                 </h2>
-                <p class="mb-4 text-white md:text-2xl">
-                  Rendimiento, batería y portabilidad. Elegí tu próxima <br />
-                  notebook para estudio, trabajo o gaming.
-                </p>
-                <a
-                  href="/shop"
-                  class="bg-primary hover:bg-transparent text-white hover:text-white border border-transparent hover:border-white font-semibold px-4 py-2 rounded-full inline-block"
-                >
-                  Ver notebooks
-                </a>
-              </div>
-            </div>
-          </div>
-        </swiper-slide>
 
-        <!-- Slide 2 -->
-        <swiper-slide>
-          <div class="relative w-full h-full">
-            <img
-              src="assets/images/main-slider/5.png"
-              alt="Slide 2"
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <div
-              class="swiper-slide-content absolute inset-0 flex items-end justify-start text-left p-6 md:p-12"
-            >
-              <div class="max-w-xl pb-10 md:pb-16">
-                <h2
-                  class="text-3xl md:text-7xl font-bold text-white mb-3 md:mb-4"
-                >
-                  PCs armadas y a medida
-                </h2>
-                <p class="mb-4 text-white md:text-2xl">
-                  Equipos listos para usar o configurados por vos. <br />
-                  Potencia para trabajar, crear y jugar.
-                </p>
-                <a
-                  href="/shop"
-                  class="bg-white hover:bg-transparent text-black hover:text-white font-semibold px-4 py-2 rounded-full inline-block border border-transparent hover:border-white"
-                >
-                  Ver PCs
-                </a>
-              </div>
-            </div>
-          </div>
-        </swiper-slide>
+                <p
+                  class="mb-4 text-white md:text-2xl"
+                  [innerHTML]="slide.descripcion"
+                ></p>
 
-        <!-- Slide 3 -->
-        <swiper-slide>
-          <div class="relative w-full h-full">
-            <img
-              src="assets/images/main-slider/4.png"
-              alt="Slide 3"
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-            <div
-              class="swiper-slide-content absolute inset-0 flex items-end justify-start text-left p-6 md:p-12"
-            >
-              <div class="max-w-xl pb-10 md:pb-16">
-                <h2
-                  class="text-3xl md:text-7xl font-bold text-white mb-3 md:mb-4"
-                >
-                  Gaming sin límites
-                </h2>
-                <p class="mb-4 text-white md:text-2xl">
-                  Monitores, teclados, auriculares y más. <br />
-                  Todo para subir de nivel.
-                </p>
                 <a
-                  href="/shop"
-                  class="bg-primary hover:bg-transparent text-white hover:text-white border border-transparent hover:border-white font-semibold px-4 py-2 rounded-full inline-block"
+                  [href]="slide.link"
+                  class="bg-primary hover:bg-transparent text-white
+                             hover:text-white border border-transparent
+                             hover:border-white font-semibold px-4 py-2 rounded-full inline-block"
                 >
-                  Ver Gaming
+                  Ver más
                 </a>
               </div>
             </div>
           </div>
         </swiper-slide>
+        }
 
         <!-- Botones -->
         <div slot="container-end">
-          <div class="swiper-button-prev"></div>
-          <div class="swiper-button-next"></div>
+          <div class="swiper-button-prev-main swiper-button-prev"></div>
+          <div class="swiper-button-next-main swiper-button-next"></div>
         </div>
       </swiper-container>
     </section>
+    }
 
-    <!-- Banners de categorías -->
-    <section id="product-banners">
-      <div class="container mx-auto py-10">
-        <div class="flex flex-wrap -mx-4">
-          <!-- Category 1 -->
-          <div class="w-full sm:w-1/3 px-4 mb-8">
-            <div
-              class="category-banner relative overflow-hidden rounded-lg shadow-lg group"
-            >
-              <img
-                src="/assets/images/cat-image1.png"
-                alt="Categoría Notebooks"
-                class="w-full h-auto"
-              />
-              <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
-              <div
-                class="absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4"
-              >
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Notebooks</h2>
-                <a
-                  href="/shop"
-                  class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block"
-                >
-                  Ver modelos
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Category 2 -->
-          <div class="w-full sm:w-1/3 px-4 mb-8">
-            <div
-              class="category-banner relative overflow-hidden rounded-lg shadow-lg group"
-            >
-              <img
-                src="/assets/images/cat-image4.png"
-                alt="Categoría Monitores"
-                class="w-full h-auto"
-              />
-              <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
-              <div
-                class="category-text absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4 transition duration-300"
-              >
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Monitores</h2>
-                <a
-                  href="/shop"
-                  class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block"
-                >
-                  Ver monitores
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Category 3 -->
-          <div class="w-full sm:w-1/3 px-4 mb-8">
-            <div
-              class="category-banner relative overflow-hidden rounded-lg shadow-lg group"
-            >
-              <img
-                src="/assets/images/cat-image5.png"
-                alt="Categoría Periféricos"
-                class="w-full h-auto"
-              />
-              <div class="absolute inset-0 bg-gray-light bg-opacity-50"></div>
-              <div
-                class="category-text absolute inset-0 flex flex-col items-center justify-center text-center text-white p-4 transition duration-300"
-              >
-                <h2 class="text-2xl md:text-3xl font-bold mb-4">Periféricos</h2>
-                <a
-                  href="/shop"
-                  class="bg-primary hover:bg-transparent border border-transparent hover:border-white text-white hover:text-white font-semibold px-4 py-2 rounded-full inline-block"
-                >
-                  Ver periféricos
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Productos populares -->
-    <section id="popular-products">
+    <!-- ========================================= -->
+    <!-- PRODUCTOS POPULARES -->
+    <!-- ========================================= -->
+    <section id="popular-products" class="mt-10">
       <div class="container mx-auto px-4">
         <h2 class="text-2xl font-bold mb-8">Productos populares</h2>
+
         <div class="flex flex-wrap -mx-4">
-          @for (product of vm.popularProducts; track $index) {
+          @for (product of vm.popularProducts; track product.idProducto) {
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
               <div class="relative mb-4">
@@ -238,7 +108,6 @@ import { MatIconModule } from '@angular/material/icon';
                     [src]="
                       product.fotos[0] || 'assets/images/products/default.png'
                     "
-                    [alt]="product.nombre"
                     class="w-full object-cover mb-4 rounded-lg cursor-pointer"
                   />
                 </a>
@@ -246,27 +115,20 @@ import { MatIconModule } from '@angular/material/icon';
                 @if (globalStore.user$ | async) {
                 <button
                   type="button"
-                  class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  (click)="
-                    $event.stopPropagation();
-                    globalStore.toggleFavorite(product.idProducto)
-                  "
-                  [attr.aria-pressed]="
-                    globalStore.isFavorite(product.idProducto)
-                  "
-                  [attr.aria-label]="
-                    globalStore.isFavorite(product.idProducto)
-                      ? 'Quitar de favoritos'
-                      : 'Agregar a favoritos'
-                  "
+                  class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90
+                               backdrop-blur-sm shadow grid place-items-center hover:bg-white"
+                  (click)="globalStore.toggleFavorite(product.idProducto)"
                 >
                   <mat-icon
-                    class="block leading-none text-[20px] [transform:translateY(4px)]"
-                    [ngClass]="
-                      globalStore.isFavorite(product.idProducto)
-                        ? 'text-primary'
-                        : 'text-gray-400'
-                    "
+                    class="text-[20px]"
+                    [ngClass]="{
+                      'text-primary': globalStore.isFavorite(
+                        product.idProducto
+                      ),
+                      'text-gray-400': !globalStore.isFavorite(
+                        product.idProducto
+                      )
+                    }"
                   >
                     {{
                       globalStore.isFavorite(product.idProducto)
@@ -284,7 +146,9 @@ import { MatIconModule } from '@angular/material/icon';
               >
                 {{ product.nombre }}
               </a>
+
               <p class="my-2">{{ product.categoria.nombre }}</p>
+
               <div class="flex items-center mb-4">
                 <span class="text-lg font-bold text-primary">
                   {{
@@ -292,6 +156,7 @@ import { MatIconModule } from '@angular/material/icon';
                       | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
                   }}
                 </span>
+
                 @if (product.precioAnterior && product.precio <
                 product.precioAnterior) {
                 <span class="text-sm line-through ml-2">
@@ -302,8 +167,11 @@ import { MatIconModule } from '@angular/material/icon';
                 </span>
                 }
               </div>
+
               <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                class="bg-primary border border-transparent hover:bg-transparent
+                           hover:border-primary text-white hover:text-primary
+                           font-semibold py-2 px-4 rounded-full w-full"
                 (click)="globalStore.addToCart({ producto: product })"
               >
                 Agregar al carrito
@@ -315,12 +183,15 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
     </section>
 
-    <!-- Últimos ingresos -->
+    <!-- ========================================= -->
+    <!-- ÚLTIMOS INGRESOS -->
+    <!-- ========================================= -->
     <section id="latest-products" class="py-10">
       <div class="container mx-auto px-4">
         <h2 class="text-2xl font-bold mb-8">Últimos ingresos</h2>
+
         <div class="flex flex-wrap -mx-4">
-          @for (product of vm.latestProducts; track $index) {
+          @for (product of vm.latestProducts; track product.idProducto) {
           <div class="w-full sm:w-1/2 lg:w-1/4 px-4 mb-8">
             <div class="bg-white p-3 rounded-lg shadow-lg">
               <div class="relative mb-4">
@@ -332,7 +203,6 @@ import { MatIconModule } from '@angular/material/icon';
                     [src]="
                       product.fotos[0] || 'assets/images/products/default.png'
                     "
-                    [alt]="product.nombre"
                     class="w-full object-cover mb-4 rounded-lg cursor-pointer"
                   />
                 </a>
@@ -340,27 +210,19 @@ import { MatIconModule } from '@angular/material/icon';
                 @if (globalStore.user$ | async) {
                 <button
                   type="button"
-                  class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow grid place-items-center hover:bg-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  (click)="
-                    $event.stopPropagation();
-                    globalStore.toggleFavorite(product.idProducto)
-                  "
-                  [attr.aria-pressed]="
-                    globalStore.isFavorite(product.idProducto)
-                  "
-                  [attr.aria-label]="
-                    globalStore.isFavorite(product.idProducto)
-                      ? 'Quitar de favoritos'
-                      : 'Agregar a favoritos'
-                  "
+                  class="absolute top-2 right-2 w-10 h-10 rounded-full bg-white/90
+                               backdrop-blur-sm shadow grid place-items-center hover:bg-white"
+                  (click)="globalStore.toggleFavorite(product.idProducto)"
                 >
                   <mat-icon
-                    class="block leading-none text-[20px] [transform:translateY(4px)]"
-                    [ngClass]="
-                      globalStore.isFavorite(product.idProducto)
-                        ? 'text-primary'
-                        : 'text-gray-400'
-                    "
+                    [ngClass]="{
+                      'text-primary': globalStore.isFavorite(
+                        product.idProducto
+                      ),
+                      'text-gray-400': !globalStore.isFavorite(
+                        product.idProducto
+                      )
+                    }"
                   >
                     {{
                       globalStore.isFavorite(product.idProducto)
@@ -378,7 +240,9 @@ import { MatIconModule } from '@angular/material/icon';
               >
                 {{ product.nombre }}
               </a>
+
               <p class="my-2">{{ product.categoria.nombre }}</p>
+
               <div class="flex items-center mb-4">
                 <span class="text-lg font-bold text-primary">
                   {{
@@ -386,6 +250,7 @@ import { MatIconModule } from '@angular/material/icon';
                       | currency : 'ARS' : 'symbol-narrow' : '1.2-2'
                   }}
                 </span>
+
                 @if (product.precioAnterior && product.precio <
                 product.precioAnterior) {
                 <span class="text-sm line-through ml-2">
@@ -396,8 +261,11 @@ import { MatIconModule } from '@angular/material/icon';
                 </span>
                 }
               </div>
+
               <button
-                class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full"
+                class="bg-primary border border-transparent hover:bg-transparent
+                           hover:border-primary text-white hover:text-primary
+                           font-semibold py-2 px-4 rounded-full w-full"
                 (click)="globalStore.addToCart({ producto: product })"
               >
                 Agregar al carrito
@@ -409,7 +277,7 @@ import { MatIconModule } from '@angular/material/icon';
       </div>
     </section>
 
-    <!-- Marcas -->
+    @if (vm.brands?.length! > 0) {
     <section id="brands" class="bg-white py-16 px-4 relative">
       <div class="container mx-auto max-w-screen-xl px-4">
         <div class="text-center mb-12 lg:mb-20">
@@ -420,242 +288,67 @@ import { MatIconModule } from '@angular/material/icon';
         </div>
 
         <swiper-container
-          class="brands-swiper-slider [--swiper-navigation-color:#ff0042]"
+          class="brands-swiper-slider"
           space-between="24"
           free-mode="true"
           pagination="true"
-          navigation-prev-el=".swiper-button-prev"
-          navigation-next-el=".swiper-button-next"
-          loop="true"
+          navigation-prev-el=".swiper-button-prev-brands"
+          navigation-next-el=".swiper-button-next-brands"
           slides-per-group="1"
           breakpoints='{
-            "0":    { "slidesPerView": 2 },
-            "640":  { "slidesPerView": 3 },
-            "1024": { "slidesPerView": 5 }
-          }'
+              "0":    { "slidesPerView": 2 },
+              "640":  { "slidesPerView": 3 },
+              "1024": { "slidesPerView": 5 }
+            }'
           autoplay-delay="2500"
           autoplay-disable-on-interaction="false"
           style="width:100%; display:block"
         >
-          <!-- Slides de marcas (dejan las imágenes tal cual) -->
+          @for (brand of vm.brands; track brand.idCarruselMarcas) {
           <swiper-slide>
             <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
+              class="w-[120px] sm:w-[140px] lg:w-[160px]
+                         h-[80px] sm:h-[90px] lg:h-[100px]
+                         mx-auto flex items-center justify-center"
             >
               <img
-                src="/assets/images/brands/gigatech.png"
-                alt="HTML"
+                [src]="brand.logoUrl"
+                [alt]="brand.nombre"
                 class="max-h-full max-w-full object-contain"
               />
             </div>
           </swiper-slide>
-          <swiper-slide>
-            <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
-            >
-              <img
-                src="/assets/images/brands/terabyte.png"
-                alt="JavaScript"
-                class="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </swiper-slide>
-          <swiper-slide>
-            <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
-            >
-              <img
-                src="/assets/images/brands/bytecom.png"
-                alt="Laravel"
-                class="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </swiper-slide>
-          <swiper-slide>
-            <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
-            >
-              <img
-                src="/assets/images/brands/quantic.png"
-                alt="PHP"
-                class="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </swiper-slide>
-          <swiper-slide>
-            <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
-            >
-              <img
-                src="/assets/images/brands/quatix.png"
-                alt="React"
-                class="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </swiper-slide>
-          <swiper-slide>
-            <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
-            >
-              <img
-                src="/assets/images/brands/solytic.png"
-                alt="Tailwind"
-                class="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </swiper-slide>
-          <swiper-slide>
-            <div
-              class="w-[120px] sm:w-[140px] lg:w-[160px] h-[80px] sm:h-[90px] lg:h-[100px] mx-auto flex items-center justify-center"
-            >
-              <img
-                src="/assets/images/brands/labora.png"
-                alt="TypeScript"
-                class="max-h-full max-w-full object-contain"
-              />
-            </div>
-          </swiper-slide>
+          }
 
           <div slot="container-end">
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
+            <div class="swiper-button-prev-brands swiper-button-prev"></div>
+            <div class="swiper-button-next-brands swiper-button-next"></div>
           </div>
         </swiper-container>
       </div>
     </section>
-
-    <!-- Banner -->
-    <section id="banner" class="relative my-16">
-      <div
-        class="container mx-auto px-4 py-20 rounded-lg relative bg-cover bg-center"
-        style="background-image: url('assets/images/banner1.png');"
-      >
-        <div class="absolute inset-0 bg-black opacity-40 rounded-lg"></div>
-        <div
-          class="relative flex flex-col items-center justify-center h-full text-center text-white py-20"
-        >
-          <h2 class="text-4xl font-bold mb-4">Tecnología al mejor precio</h2>
-          <div class="flex space-x-4">
-            <a
-              href="#"
-              class="bg-primary hover:bg-transparent text-white hover:text-primary border border-transparent hover:border-primary font-semibold px-4 py-2 rounded-full inline-block"
-            >
-              Ofertas
-            </a>
-            <a
-              href="#"
-              class="bg-primary hover:bg-transparent text-white hover:text-primary border border-transparent hover:border-primary font-semibold px-4 py-2 rounded-full inline-block"
-            >
-              Nuevos ingresos
-            </a>
-            <a
-              href="#"
-              class="bg-primary hover:bg-transparent text-white hover:text-primary border border-transparent hover:border-primary font-semibold px-4 py-2 rounded-full inline-block"
-            >
-              Ver catálogo
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Blog
-    <section class="py-16">
-      <div class="text-center mb-12 lg:mb-20">
-        <h2 class="text-5xl font-bold mb-4">
-          Novedades <span class="text-primary">del Blog</span>
-        </h2>
-        <p class="my-7">
-          Tips, configuraciones y guías para elegir tu próxima compu y accesorios.
-        </p>
-      </div>
-      <div class="relative items-center w-full px-5 py-12 mx-auto md:px-12 lg:px-24 max-w-7xl">
-        <div class="grid w-full grid-cols-1 gap-6 mx-auto lg:grid-cols-3">
-          <div class="flex flex-col p-6 bg-white rounded-xl shadow-lg">
-            <img class="object-cover object-center w-full mb-8 rounded-xl" src="/assets/images/fashion-trends.jpg" alt="blog" />
-            <h2 class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">Guías de compra</h2>
-            <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl">
-              ¿Notebook o PC de escritorio?
-            </h1>
-            <p class="flex-grow text-base font-medium leading-relaxed text-gray-txt">
-              Te contamos qué conviene según tu uso: estudio, trabajo creativo o gaming. Pros y contras de cada opción.
-            </p>
-            <div class="mt-8">
-              <a href="#" class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">
-                Leer más
-              </a>
-            </div>
-          </div>
-
-          <div class="flex flex-col p-6 bg-white rounded-xl shadow-lg">
-            <img class="object-cover object-center w-full mb-8 rounded-xl" src="/assets/images/stylisng-tips.jpg" alt="blog" />
-            <h2 class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">Periféricos</h2>
-            <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl">
-              Cómo elegir tu teclado y mouse
-            </h1>
-            <p class="flex-grow text-base font-medium leading-relaxed text-gray-txt">
-              Mecanismos, tamaños, sensores y ergonomía. Elegí el combo ideal para productividad o gaming.
-            </p>
-            <div class="mt-8">
-              <a href="#" class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">
-                Leer más
-              </a>
-            </div>
-          </div>
-
-          <div class="flex flex-col p-6 bg-white rounded-xl shadow-lg">
-            <img class="object-cover object-center w-full mb-8 rounded-xl" src="/assets/images/customer-stories.jpg" alt="blog" />
-            <h2 class="mb-2 text-xs font-semibold tracking-widest text-primary uppercase">Monitores</h2>
-            <h1 class="mb-4 text-2xl font-semibold leading-none tracking-tighter text-gray-dark lg:text-3xl">
-              60Hz vs 144Hz: ¿se nota la diferencia?
-            </h1>
-            <p class="flex-grow text-base font-medium leading-relaxed text-gray-txt">
-              Te explicamos cuándo conviene subir la tasa de refresco y qué tener en cuenta al elegir tu monitor.
-            </p>
-            <div class="mt-8">
-              <a href="#" class="bg-primary border border-transparent hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full w-full">
-                Leer más
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>-->
-
-    <!-- Suscripción
-    <section id="subscribe" class="py-6 lg:py-24 bg-white border-t border-gray-line">
-      <div class="container mx-auto">
-        <div class="flex flex-col items-center rounded-lg p-4 sm:p-0 ">
-          <div class="mb-8">
-            <h2 class="text-center text-xl font-bold sm:text-2xl lg:text-left lg:text-3xl">
-              Sumate al newsletter y <span class="text-primary">obtené $50 de descuento</span> en tu primera compra
-            </h2>
-          </div>
-          <div class="flex flex-col items-center w-96 ">
-            <form class="flex w-full gap-2">
-              <input
-                placeholder="Ingresá tu e-mail"
-                class="w-full flex-1 rounded-full px-3 py-2 border border-gray-300 text-gray-700 placeholder-gray-500 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary"
-              />
-              <button class="bg-primary border border-primary hover:bg-transparent hover:border-primary text-white hover:text-primary font-semibold py-2 px-4 rounded-full">
-                Suscribirme
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>-->
-    }
+    } }
   `,
 })
 export class IndexComponent {
-  protected openMen = false;
-  protected openWomen = false;
+  @ViewChild('mainSwiper', { static: false }) mainSwiper!: ElementRef;
   protected readonly store = inject(Store);
   protected readonly globalStore = inject(GlobalStore);
   protected readonly vm$ = this.store.vm$;
+  readonly vm = toSignal(this.store.vm$);
+  readonly slides = toSignal(this.store.slides$);
 
   constructor() {
+    effect(() => {
+      const slides = this.slides();
+      if (!slides || slides.length < 2) return;
+
+      const swiperEl = this.mainSwiper?.nativeElement;
+      if (!swiperEl) return;
+
+      queueMicrotask(() => swiperEl.swiper?.update());
+    });
+
     this.store.loadData();
   }
 }

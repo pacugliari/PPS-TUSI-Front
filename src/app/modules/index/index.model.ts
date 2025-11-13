@@ -31,16 +31,28 @@ export class Producto {
 }
 
 export class Categoria {
-  constructor(
-    public idCategoria: number,
-    public nombre: string
-  ) {}
+  constructor(public idCategoria: number, public nombre: string) {}
 
   static adapt(item: any): Categoria {
     if (!item.idCategoria || !item.nombre) {
       throw new Error('Invalid category data');
     }
-
     return new Categoria(item.idCategoria, item.nombre);
   }
+}
+
+export interface CarouselPrincipal {
+  idCarruselPrincipal: number;
+  imagenUrl: string;
+  titulo: string;
+  descripcion: string;
+  link: string;
+  orden: number;
+}
+
+export interface CarouselMarca {
+  idCarruselMarcas: number;
+  nombre: string;
+  logoUrl: string;
+  orden: number;
 }
