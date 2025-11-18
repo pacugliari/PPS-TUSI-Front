@@ -32,6 +32,7 @@ import { ReturnsAdminComponent } from './returns/returns-admin/returns-admin.com
 import { ReturnsComponent } from './returns/returns-user/returns-user.component';
 import { CarouselPrincipalComponent } from './carousel-principal/carousel-principal.component';
 import { CarouselMarcasComponent } from './carousel-marcas/carousel-marcas.component';
+import { PurchaseOrdersComponent } from './purchase-orders/purchase-orders.component';
 
 type MenuKey =
   | 'datos'
@@ -51,7 +52,8 @@ type MenuKey =
   | 'pedidos'
   | 'devoluciones'
   | 'carrusel_principal'
-  | 'carrusel_marcas';
+  | 'carrusel_marcas'
+  | 'ordenes_compra';
 
 @Component({
   selector: 'app-account',
@@ -81,6 +83,7 @@ type MenuKey =
     ReturnsComponent,
     CarouselPrincipalComponent,
     CarouselMarcasComponent,
+    PurchaseOrdersComponent,
   ],
   template: `
     @if (vm$ | async; as vm) {
@@ -347,7 +350,19 @@ type MenuKey =
               <mat-icon matListItemIcon class="mr-3">sell</mat-icon>
               <div matListItemTitle>Carrusel de marcas</div>
             </a>
-
+            <a
+              mat-list-item
+              class="!py-3"
+              [ngClass]="
+                active() === 'ordenes_compra'
+                  ? 'bg-indigo-500 text-white'
+                  : 'hover:bg-indigo-50'
+              "
+              (click)="setActive('ordenes_compra')"
+            >
+              <mat-icon matListItemIcon class="mr-3">shopping_cart</mat-icon>
+              <div matListItemTitle>Órdenes de compra</div>
+            </a>
             } @case (rolTypes.DELIVERY){
             <a
               mat-list-item
@@ -409,6 +424,8 @@ type MenuKey =
           <app-products />
           }@case ('pedidos') {
           <app-orders />
+          }@case ('ordenes_compra') {
+          <app-purchase-orders />
           }@case('carrusel_principal') { <app-carousel-principal /> }
           @case('carrusel_marcas') { <app-carousel-marcas /> }@case
           ('devoluciones') { @if (vm.user?.role?.tipo === rolTypes.USUARIO) {
